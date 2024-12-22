@@ -129,9 +129,12 @@
           <h3 id="apsWithoutLO" class="fw-bold text-success text-center"></h3>
           <div id="passLevelDisplay"></div>
           <div id="distinctionsDisplay"></div>
-          <button class="btn btn-primary mt-3" onclick="window.location.href='aps-score-checker.html'">
+          
+          <button class="btn btn-primary mt-3" onclick="goToAPSChecker()">
             Go to APS Score Checker
           </button>
+          
+
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -556,6 +559,18 @@
       }
     });
   }
+  
+//go to aps score checker
+function goToAPSChecker() {
+  // "apsWithoutLO" is the element in your pop-up that displays the final APS (without LO).
+  // For safety, parse it as an integer (or leave it as a string).
+  const finalScore = apsWithoutLO.textContent.trim();
+
+  // If needed, we can do some validation or trimming. 
+  // Then pass it as a query parameter "score"
+  window.location.href = `aps-score-checker.html?score=${finalScore}`;
+}
+
 
   // Shared calculation logic
   function calculateAPS() {
