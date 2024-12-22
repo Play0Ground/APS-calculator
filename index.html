@@ -3,12 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <title>APS Calculator | Calculate Your APS Instantly</title>
+
   <!-- External Libraries -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hover.css/2.3.1/css/hover-min.css">
+
   <style>
     /* Toggle Switch Style */
     .checkbox-wrapper-25 {
@@ -17,13 +19,11 @@
       align-items: center;
       margin: 20px 0;
     }
-
     .checkbox-wrapper-25 label {
       margin-right: 10px;
       margin-bottom: 0;
       font-weight: bold;
     }
-
     .checkbox-wrapper-25 input[type="checkbox"] {
       background-image: linear-gradient(hsla(0,0%,0%,.1), hsla(0,0%,100%,.1)),
         linear-gradient(to right, #f66 50%, #6cf 50%);
@@ -41,7 +41,6 @@
       appearance: none;
       transition: .25s;
     }
-
     .checkbox-wrapper-25 input[type="checkbox"]::after {
       background-color: #eee;
       background-image: linear-gradient(hsla(0,0%,100%,.1), hsla(0,0%,0%,.1));
@@ -55,7 +54,6 @@
       height: 25px;
       width: 50px;
     }
-
     .checkbox-wrapper-25 input[type="checkbox"]:checked {
       background-position: 0 0, 35px 0;
       padding-left: 25px;
@@ -63,7 +61,9 @@
     }
   </style>
 </head>
+
 <body>
+
 <div class="container mt-5">
   <div class="text-center mb-4">
     <h1 class="animate__animated animate__fadeInDown">APS Calculator</h1>
@@ -81,6 +81,7 @@
       <input type="checkbox" id="toggleRangeMarks">
     </div>
 
+    <!-- Form Container (though we won't use native submit) -->
     <form id="apsForm">
       <!-- Subject Inputs Container -->
       <div id="subjectsContainer"></div>
@@ -96,10 +97,13 @@
         </button>
       </div>
 
-      <!-- Submit and Reset Buttons -->
+      <!-- Two separate Calculate Buttons -->
       <div class="text-center mt-4">
-        <button type="submit" class="btn btn-success btn-lg">
-          <i class="fas fa-calculator"></i> Calculate APS
+        <button type="button" class="btn btn-success btn-lg" id="calculateRange">
+          <i class="fas fa-calculator"></i> Calculate APS (Range)
+        </button>
+        <button type="button" class="btn btn-success btn-lg d-none" id="calculateMarks">
+          <i class="fas fa-calculator"></i> Calculate APS (Marks)
         </button>
         <button type="button" class="btn btn-secondary btn-lg" id="resetForm">
           <i class="fas fa-redo"></i> Reset
@@ -123,7 +127,9 @@
           <h3 id="apsWithoutLO" class="fw-bold text-success text-center"></h3>
           <div id="passLevelDisplay"></div>
           <div id="distinctionsDisplay"></div>
-          <button class="btn btn-primary mt-3" onclick="window.location.href='aps-score-checker.html'">Go to APS Score Checker</button>
+          <button class="btn btn-primary mt-3" onclick="window.location.href='aps-score-checker.html'">
+            Go to APS Score Checker
+          </button>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -149,7 +155,8 @@
             <li>You can add one optional subject by clicking "Add Optional Subject".</li>
             <li>Once all fields are filled, click "Calculate APS" to see your APS score and pass level.</li>
           </ul>
-          <p>The APS Calculator will compute your APS score with and without Life Orientation. It will also display your pass level based on your APS score and highlight any distinctions (subjects with marks 80% and above).</p>
+          <p>The APS Calculator will compute your APS score with and without Life Orientation. 
+             It will also display your pass level based on your APS score and highlight any distinctions (subjects with marks 80% and above).</p>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -167,22 +174,28 @@
 <script>
   AOS.init();
 
-  const subjectsContainer = document.getElementById("subjectsContainer");
-  const optionalSubjects = document.getElementById("optionalSubjects");
-  const addSubjectBtn = document.getElementById("addSubject");
-  const deleteSubjectBtn = document.getElementById("deleteSubject");
-  const resetFormBtn = document.getElementById("resetForm");
-  const toggleRangeMarks = document.getElementById("toggleRangeMarks");
-  const toggleLabel = document.getElementById("toggleLabel");
-  const form = document.getElementById("apsForm");
-  const resultModal = new bootstrap.Modal(document.getElementById("resultModal"));
-  const apsWithLO = document.getElementById("apsWithLO");
-  const apsWithoutLO = document.getElementById("apsWithoutLO");
-  const passLevelDisplay = document.getElementById("passLevelDisplay");
+  const subjectsContainer   = document.getElementById("subjectsContainer");
+  const optionalSubjects    = document.getElementById("optionalSubjects");
+  const addSubjectBtn       = document.getElementById("addSubject");
+  const deleteSubjectBtn    = document.getElementById("deleteSubject");
+  const resetFormBtn        = document.getElementById("resetForm");
+  const toggleRangeMarks    = document.getElementById("toggleRangeMarks");
+  const toggleLabel         = document.getElementById("toggleLabel");
+  const form                = document.getElementById("apsForm");
+  const resultModal         = new bootstrap.Modal(document.getElementById("resultModal"));
+
+  const apsWithLO           = document.getElementById("apsWithLO");
+  const apsWithoutLO        = document.getElementById("apsWithoutLO");
+  const passLevelDisplay    = document.getElementById("passLevelDisplay");
   const distinctionsDisplay = document.getElementById("distinctionsDisplay");
+
+  // Two separate calculate buttons:
+  const calcRangeBtn        = document.getElementById("calculateRange");
+  const calcMarksBtn        = document.getElementById("calculateMarks");
 
   let subjectCount = 0;
 
+  // Subject options
   const subjectOptions = [
     { value: "", text: "Select Additional Subject", disabled: true },
     { value: "Accounting", text: "Accounting" },
@@ -224,7 +237,6 @@
     { value: "Tshivenda HL", text: "Tshivenda HL" },
     { value: "Xitsonga HL", text: "Xitsonga HL" }
   ];
-
   const firstAdditionalLanguages = [
     { value: "", text: "Select First Additional Language", disabled: true },
     { value: "Afrikaans FAL", text: "Afrikaans FAL" },
@@ -240,6 +252,7 @@
     { value: "Xitsonga FAL", text: "Xitsonga FAL" }
   ];
 
+  // Required subjects
   const requiredSubjects = [
     { id: "homeLanguage", label: "Select Home Language", options: homeLanguages },
     { id: "firstAdditionalLanguage", label: "Select First Additional Language", options: firstAdditionalLanguages },
@@ -265,6 +278,7 @@
     { id: "subject7", label: "Select Additional Subject 7", options: subjectOptions }
   ];
 
+  // Pass Levels
   const passLevels = [
     {
       level: "Bachelor's Degree Pass",
@@ -298,86 +312,109 @@
     }
   ];
 
-  const generateMarksOptions = () => {
+  // Generate Marks Options
+  function generateMarksOptions() {
     let options = `<option value="" disabled selected>Select Marks</option>`;
     for (let i = 100; i >= 0; i--) {
       options += `<option value="${i}">${i}</option>`;
     }
     return options;
-  };
+  }
 
-  const createLevelSelect = (isLO = false) => `
-    <select class="form-select level-select-range" ${isLO ? 'data-lo="true"' : ''} required>
-      <option value="" disabled selected>Select Range</option>
-      <option value="7">(80-100%)</option>
-      <option value="6">(70-79%)</option>
-      <option value="5">(60-69%)</option>
-      <option value="4">(50-59%)</option>
-      <option value="3">(40-49%)</option>
-      <option value="2">(30-39%)</option>
-      <option value="1">(0-29%)</option>
-    </select>
-    <select class="form-select level-select-marks d-none" ${isLO ? 'data-lo="true"' : ''} required>
-      ${generateMarksOptions()}
-    </select>
-  `;
+  // Create the Range & Marks selects
+  function createLevelSelect(isLO = false) {
+    return `
+      <select class="form-select level-select-range" ${isLO ? 'data-lo="true"' : ''} required>
+        <option value="" disabled selected>Select Range</option>
+        <option value="7">(80-100%)</option>
+        <option value="6">(70-79%)</option>
+        <option value="5">(60-69%)</option>
+        <option value="4">(50-59%)</option>
+        <option value="3">(40-49%)</option>
+        <option value="2">(30-39%)</option>
+        <option value="1">(0-29%)</option>
+      </select>
 
-  // Populate required subjects
+      <select class="form-select level-select-marks d-none" ${isLO ? 'data-lo="true"' : ''} required>
+        ${generateMarksOptions()}
+      </select>
+    `;
+  }
+
+  // Populate required subjects on load
   requiredSubjects.forEach(subject => {
     subjectsContainer.innerHTML += `
-    <div class="row mb-3">
-      <div class="col-md-6">
-        <label for="${subject.id}" class="form-label">${subject.label}</label>
-        <select id="${subject.id}" class="form-select subject-select" ${subject.disabled ? "disabled" : ""} required>
-          ${subject.options
-            .map(
-              option => `
-              <option value="${option.value}" ${option.disabled ? "disabled" : ""} ${option.value === "" ? "selected" : ""}>
-                ${option.text}
-              </option>
-            `
-            )
-            .join("")}
-        </select>
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="${subject.id}" class="form-label">${subject.label}</label>
+          <select id="${subject.id}" class="form-select subject-select" 
+            ${subject.disabled ? "disabled" : ""} required>
+            ${
+              subject.options
+                .map(option => `
+                  <option value="${option.value}"
+                    ${option.disabled ? "disabled" : ""}
+                    ${option.value === "" ? "selected" : ""}>
+                    ${option.text}
+                  </option>
+                `)
+                .join("")
+            }
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Select Value</label>
+          ${createLevelSelect(subject.id === "lifeOrientation")}
+        </div>
       </div>
-      <div class="col-md-6">
-        <label class="form-label">Select Value</label>
-        ${createLevelSelect(subject.id === "lifeOrientation")}
-      </div>
-    </div>
-  `;
+    `;
   });
 
   // Toggle between Range and Marks
   toggleRangeMarks.addEventListener("change", () => {
     const isMarksMode = toggleRangeMarks.checked;
     toggleLabel.textContent = isMarksMode ? "Select by Marks" : "Select by Range";
+
+    // Show/hide the appropriate Calculate button
+    if (isMarksMode) {
+      calcRangeBtn.classList.add("d-none");
+      calcMarksBtn.classList.remove("d-none");
+    } else {
+      calcMarksBtn.classList.add("d-none");
+      calcRangeBtn.classList.remove("d-none");
+    }
+
+    // Switch visible selects between range vs marks
     document.querySelectorAll(".level-select-range, .level-select-marks").forEach(select => {
+      // The "partner" select is the other type in the same parent
       const correspondingSelect = select.parentElement.querySelector(
         select.classList.contains("level-select-range")
           ? ".level-select-marks"
           : ".level-select-range"
       );
 
+      // If this select is currently visible, let's convert its value
       if (!select.classList.contains("d-none")) {
-        const value = parseInt(select.value);
-        if (!isNaN(value)) {
+        const val = parseInt(select.value);
+        if (!isNaN(val)) {
           if (select.classList.contains("level-select-range")) {
-            const medianMarks = rangeToMedianMarks(value);
+            // Convert from APS => median marks
+            const medianMarks = rangeToMedianMarks(val);
             correspondingSelect.value = medianMarks;
           } else {
-            const apsPoints = marksToAPS(value);
+            // Convert from marks => APS
+            const apsPoints = marksToAPS(val);
             correspondingSelect.value = apsPoints;
           }
         }
       }
-
+      // Toggle
       select.classList.toggle("d-none");
     });
   });
 
-  // Helper functions
-  const marksToAPS = marks => {
+  // Helpers
+  function marksToAPS(marks) {
     if (marks >= 90) return 7;
     if (marks >= 80) return 6;
     if (marks >= 70) return 5;
@@ -386,39 +423,28 @@
     if (marks >= 40) return 2;
     if (marks >= 30) return 1;
     return 0;
-  };
-
-  const rangeToMedianMarks = apsPoints => {
+  }
+  function rangeToMedianMarks(apsPoints) {
     switch (apsPoints) {
-      case 7:
-        return 95;
-      case 6:
-        return 85;
-      case 5:
-        return 75;
-      case 4:
-        return 65;
-      case 3:
-        return 55;
-      case 2:
-        return 45;
-      case 1:
-        return 35;
-      case 0:
-        return 15;
-      default:
-        return "";
+      case 7: return 95;
+      case 6: return 85;
+      case 5: return 75;
+      case 4: return 65;
+      case 3: return 55;
+      case 2: return 45;
+      case 1: return 35;
+      case 0: return 15;
+      default: return "";
     }
-  };
-
-  const getPassLevel = totalAPS => {
+  }
+  function getPassLevel(totalAPS) {
     for (let i = 0; i < passLevels.length; i++) {
       if (totalAPS >= passLevels[i].minAPS) {
         return passLevels[i];
       }
     }
     return passLevels[passLevels.length - 1];
-  };
+  }
 
   // Add Optional Subject
   addSubjectBtn.addEventListener("click", () => {
@@ -429,15 +455,17 @@
           <div class="col-md-6">
             <label class="form-label">Optional Subject</label>
             <select class="form-select subject-select optional-subject" required>
-              ${subjectOptions
-                .map(
-                  option => `
-                  <option value="${option.value}" ${option.disabled ? "disabled" : ""} ${option.value === "" ? "selected" : ""}>
-                    ${option.text}
-                  </option>
-                `
-                )
-                .join("")}
+              ${
+                subjectOptions
+                  .map(option => `
+                    <option value="${option.value}"
+                      ${option.disabled ? "disabled" : ""}
+                      ${option.value === "" ? "selected" : ""}>
+                      ${option.text}
+                    </option>
+                  `)
+                  .join("")
+              }
             </select>
           </div>
           <div class="col-md-6">
@@ -447,6 +475,8 @@
         </div>
       `;
       updateSubjectOptions();
+      // Also re-apply toggle state to the new selects
+      applyCurrentToggleState();
     } else {
       alert("Only 1 optional subject allowed.");
     }
@@ -461,19 +491,24 @@
     }
   });
 
-  // Reset Form
+  // Reset form
   resetFormBtn.addEventListener("click", () => {
     form.reset();
     optionalSubjects.innerHTML = "";
     subjectCount = 0;
-    document.querySelectorAll(".level-select-range").forEach(select => select.classList.remove("d-none"));
-    document.querySelectorAll(".level-select-marks").forEach(select => select.classList.add("d-none"));
+    // Default to Range mode
     toggleRangeMarks.checked = false;
     toggleLabel.textContent = "Select by Range";
+    calcMarksBtn.classList.add("d-none");
+    calcRangeBtn.classList.remove("d-none");
+
+    // Show range, hide marks
+    document.querySelectorAll(".level-select-range").forEach(s => s.classList.remove("d-none"));
+    document.querySelectorAll(".level-select-marks").forEach(s => s.classList.add("d-none"));
     updateSubjectOptions();
   });
 
-  // Update Subject Options to prevent duplicates
+  // Prevent duplicate selections
   function updateSubjectOptions() {
     const subjectSelects = document.querySelectorAll(".subject-select");
     const selectedSubjects = Array.from(subjectSelects).map(select => select.value);
@@ -481,7 +516,6 @@
     subjectSelects.forEach(select => {
       const currentValue = select.value;
       const options = select.querySelectorAll("option");
-
       options.forEach(option => {
         if (option.value !== "" && option.value !== currentValue) {
           if (selectedSubjects.includes(option.value)) {
@@ -494,62 +528,84 @@
     });
   }
 
-  // Add event listeners to subject selects
   document.addEventListener("change", function(e) {
     if (e.target && e.target.classList.contains("subject-select")) {
       updateSubjectOptions();
     }
   });
 
-  // Form Submission and APS Calculation
-  form.addEventListener("submit", e => {
-    e.preventDefault();
+  // If we add a new optional subject while in Marks mode, we must hide the Range selects
+  function applyCurrentToggleState() {
+    const isMarksMode = toggleRangeMarks.checked;
+    document.querySelectorAll(".row").forEach(row => {
+      const rangeSelect = row.querySelector(".level-select-range");
+      const marksSelect = row.querySelector(".level-select-marks");
+      if (rangeSelect && marksSelect) {
+        // Show whichever is appropriate
+        if (isMarksMode) {
+          rangeSelect.classList.add("d-none");
+          marksSelect.classList.remove("d-none");
+        } else {
+          marksSelect.classList.add("d-none");
+          rangeSelect.classList.remove("d-none");
+        }
+      }
+    });
+  }
 
-    let totalAPS = 0;
-    let loPoints = 0;
-    let allFieldsFilled = true;
-    let distinctions = [];
-    let distinctionCount = 0;
+  // Shared calculation logic
+  function calculateAPS() {
+    let totalAPS          = 0;
+    let loPoints          = 0;
+    let allFieldsFilled   = true;
+    let distinctions      = [];
+    let distinctionCount  = 0;
 
     const subjectRows = document.querySelectorAll("#subjectsContainer .row, #optionalSubjects .row");
 
-    // Iterate over each subject row
     for (let row of subjectRows) {
       const subjectSelect = row.querySelector(".subject-select");
-      const valueSelect = row.querySelector(".level-select-range:not(.d-none), .level-select-marks:not(.d-none)");
+      const valueSelect   = row.querySelector(".level-select-range:not(.d-none), .level-select-marks:not(.d-none)");
 
       if (!subjectSelect || !valueSelect) {
         allFieldsFilled = false;
         break;
       }
-
       if (subjectSelect.value === "" || valueSelect.value === "") {
         allFieldsFilled = false;
         break;
       }
 
-      const value = parseInt(valueSelect.value);
-      let points = 0;
-      let marks = 0;
+      const val = parseInt(valueSelect.value);
+      if (isNaN(val)) {
+        allFieldsFilled = false;
+        break;
+      }
 
+      let points = 0;
+      let marks  = 0;
+      // If it's a Marks select
       if (valueSelect.classList.contains("level-select-marks")) {
-        marks = value;
-        points = marksToAPS(value);
-      } else if (valueSelect.classList.contains("level-select-range")) {
-        points = value;
-        marks = rangeToMedianMarks(value);
+        marks  = val;
+        points = marksToAPS(val);
+      }
+      // If it's a Range select
+      else if (valueSelect.classList.contains("level-select-range")) {
+        points = val;
+        marks  = rangeToMedianMarks(val);
       } else {
         allFieldsFilled = false;
         break;
       }
 
+      // If subject is Life Orientation, do not add to total
       if (subjectSelect.id === "lifeOrientation") {
         loPoints = points;
       } else {
         totalAPS += points;
       }
 
-      // Check for distinctions (marks >=80%)
+      // Distinctions if marks >= 80
       if (marks >= 80) {
         const subjectName = subjectSelect.options[subjectSelect.selectedIndex].text;
         distinctions.push(subjectName);
@@ -558,31 +614,26 @@
     }
 
     if (!allFieldsFilled) {
-      alert("Please fill in all the fields.");
+      alert("Please fill in all the fields correctly.");
       return;
     }
 
     const totalAPSWithLO = totalAPS + loPoints;
+    const passLevelInfo  = getPassLevel(totalAPS);
 
-    // Determine Pass Level
-    const passLevelInfo = getPassLevel(totalAPS);
-
-    apsWithLO.textContent = totalAPSWithLO;
+    // Show results
+    apsWithLO.textContent    = totalAPSWithLO;
     apsWithoutLO.textContent = totalAPS;
-
-    // Display Pass Level and Description
     passLevelDisplay.innerHTML = `
       <p class="fw-bold">Pass Level: ${passLevelInfo.level}</p>
       <p>${passLevelInfo.description}</p>
     `;
-
-    // Display Distinctions
     if (distinctionCount > 0) {
       distinctionsDisplay.innerHTML = `
         <p class="fw-bold">Distinction Count: ${distinctionCount}</p>
         <p>You got distinctions in the following subjects:</p>
         <ul>
-          ${distinctions.map(subject => `<li>${subject}</li>`).join("")}
+          ${distinctions.map(s => `<li>${s}</li>`).join("")}
         </ul>
       `;
     } else {
@@ -590,7 +641,11 @@
     }
 
     resultModal.show();
-  });
+  }
+
+  // Attach the same calculation logic to both buttons
+  calcRangeBtn.addEventListener("click", () => calculateAPS());
+  calcMarksBtn.addEventListener("click", () => calculateAPS());
 </script>
 </body>
 </html>
