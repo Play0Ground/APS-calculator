@@ -78,7 +78,7 @@
     <!-- Toggle for Range/Marks -->
     <div class="checkbox-wrapper-25">
       <label for="toggleRangeMarks" class="form-label" id="toggleLabel">Select by Range</label>
-      <input type="checkbox" id="toggleRangeMarks" checked>
+      <input type="checkbox" id="toggleRangeMarks">
     </div>
 
     <form id="apsForm">
@@ -516,13 +516,7 @@
     // Iterate over each subject row
     for (let row of subjectRows) {
       const subjectSelect = row.querySelector(".subject-select");
-      let valueSelect;
-      
-      if (toggleRangeMarks.checked) {
-        valueSelect = row.querySelector(".level-select-marks");
-      } else {
-        valueSelect = row.querySelector(".level-select-range");
-      }
+      const valueSelect = row.querySelector(".level-select-range:not(.d-none), .level-select-marks:not(.d-none)");
 
       if (!subjectSelect || !valueSelect) {
         allFieldsFilled = false;
