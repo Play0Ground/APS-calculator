@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <!-- Responsive meta tag for mobile -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>APS Calculator | Calculate Your APS Instantly</title>
 
   <!-- External Libraries -->
@@ -63,7 +66,6 @@
 </head>
 
 <body>
-
 <div class="container mt-5">
   <div class="text-center mb-4">
     <h1 class="animate__animated animate__fadeInDown">APS Calculator</h1>
@@ -100,10 +102,10 @@
       <!-- Two separate Calculate Buttons -->
       <div class="text-center mt-4">
         <button type="button" class="btn btn-success btn-lg" id="calculateRange">
-          <i class="fas fa-calculator"></i> Calculate APS (Range)
+          <i class="fas fa-calculator"></i> Calculate APS
         </button>
         <button type="button" class="btn btn-success btn-lg d-none" id="calculateMarks">
-          <i class="fas fa-calculator"></i> Calculate APS (Marks)
+          <i class="fas fa-calculator"></i> Calculate APS
         </button>
         <button type="button" class="btn btn-secondary btn-lg" id="resetForm">
           <i class="fas fa-redo"></i> Reset
@@ -155,8 +157,10 @@
             <li>You can add one optional subject by clicking "Add Optional Subject".</li>
             <li>Once all fields are filled, click "Calculate APS" to see your APS score and pass level.</li>
           </ul>
-          <p>The APS Calculator will compute your APS score with and without Life Orientation. 
-             It will also display your pass level based on your APS score and highlight any distinctions (subjects with marks 80% and above).</p>
+          <p>
+            The APS Calculator will compute your APS score with and without Life Orientation. 
+            It will also display your pass level based on your APS score and highlight any distinctions (subjects with marks 80% and above).
+          </p>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -322,6 +326,7 @@
   }
 
   // Create the Range & Marks selects
+  // Use col-12 col-md-6 for responsiveness in each row
   function createLevelSelect(isLO = false) {
     return `
       <select class="form-select level-select-range" ${isLO ? 'data-lo="true"' : ''} required>
@@ -342,10 +347,11 @@
   }
 
   // Populate required subjects on load
+  // Each subject row will be col-12 col-md-6 for stacking on mobile
   requiredSubjects.forEach(subject => {
     subjectsContainer.innerHTML += `
       <div class="row mb-3">
-        <div class="col-md-6">
+        <div class="col-12 col-md-6">
           <label for="${subject.id}" class="form-label">${subject.label}</label>
           <select id="${subject.id}" class="form-select subject-select" 
             ${subject.disabled ? "disabled" : ""} required>
@@ -362,7 +368,7 @@
             }
           </select>
         </div>
-        <div class="col-md-6">
+        <div class="col-12 col-md-6">
           <label class="form-label">Select Value</label>
           ${createLevelSelect(subject.id === "lifeOrientation")}
         </div>
@@ -386,14 +392,12 @@
 
     // Switch visible selects between range vs marks
     document.querySelectorAll(".level-select-range, .level-select-marks").forEach(select => {
-      // The "partner" select is the other type in the same parent
       const correspondingSelect = select.parentElement.querySelector(
         select.classList.contains("level-select-range")
           ? ".level-select-marks"
           : ".level-select-range"
       );
 
-      // If this select is currently visible, let's convert its value
       if (!select.classList.contains("d-none")) {
         const val = parseInt(select.value);
         if (!isNaN(val)) {
@@ -450,9 +454,10 @@
   addSubjectBtn.addEventListener("click", () => {
     if (subjectCount < 1) {
       subjectCount++;
+      // Use col-12 col-md-6 for responsiveness
       optionalSubjects.innerHTML += `
         <div class="row mb-3" id="optionalSubject${subjectCount}">
-          <div class="col-md-6">
+          <div class="col-12 col-md-6">
             <label class="form-label">Optional Subject</label>
             <select class="form-select subject-select optional-subject" required>
               ${
@@ -468,7 +473,7 @@
               }
             </select>
           </div>
-          <div class="col-md-6">
+          <div class="col-12 col-md-6">
             <label class="form-label">Select Value</label>
             ${createLevelSelect()}
           </div>
@@ -541,7 +546,6 @@
       const rangeSelect = row.querySelector(".level-select-range");
       const marksSelect = row.querySelector(".level-select-marks");
       if (rangeSelect && marksSelect) {
-        // Show whichever is appropriate
         if (isMarksMode) {
           rangeSelect.classList.add("d-none");
           marksSelect.classList.remove("d-none");
