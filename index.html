@@ -2,18 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <!-- Responsive meta tag for mobile -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>APS Calculator | Calculate Your APS Instantly</title>
-
+  
   <!-- External Libraries -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hover.css/2.3.1/css/hover-min.css">
-
+  
   <style>
     /* Toggle Switch Style */
     .checkbox-wrapper-25 {
@@ -22,11 +19,13 @@
       align-items: center;
       margin: 20px 0;
     }
+
     .checkbox-wrapper-25 label {
       margin-right: 10px;
       margin-bottom: 0;
       font-weight: bold;
     }
+
     .checkbox-wrapper-25 input[type="checkbox"] {
       background-image: linear-gradient(hsla(0,0%,0%,.1), hsla(0,0%,100%,.1)),
         linear-gradient(to right, #f66 50%, #6cf 50%);
@@ -44,6 +43,7 @@
       appearance: none;
       transition: .25s;
     }
+
     .checkbox-wrapper-25 input[type="checkbox"]::after {
       background-color: #eee;
       background-image: linear-gradient(hsla(0,0%,100%,.1), hsla(0,0%,0%,.1));
@@ -57,599 +57,1013 @@
       height: 25px;
       width: 50px;
     }
+
     .checkbox-wrapper-25 input[type="checkbox"]:checked {
       background-position: 0 0, 35px 0;
       padding-left: 25px;
       padding-right: 0;
     }
+
+    /* Marks input styles */
+    .select-container {
+      position: relative;
+    }
+
+    /* Marks Dropdown Styles */
+    .marks-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      max-height: 200px;
+      overflow-y: auto;
+      background: white;
+      border: 1px solid #dee2e6;
+      border-radius: 0.25rem;
+      z-index: 1050;
+      display: none;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .marks-dropdown.show {
+      display: block;
+    }
+
+    .marks-dropdown-item {
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+    }
+
+    .marks-dropdown-item:hover {
+      background-color: #f8f9fa;
+    }
+
+    /* Error Message Style */
+    .error-message {
+      color: red;
+      font-size: 0.875rem;
+      margin-top: 5px;
+      display: none; /* Hidden by default */
+    }
+
+    /* Highlight Invalid Fields */
+    .input-error {
+      border: 2px solid rgb(238, 185, 11);
+      box-shadow: 0 0 5px rgb(219, 140, 20);
+    }
+
+    /* Highlight Average */
+    .average-highlight {
+      background-color: #f0f8ff;
+      border: 2px solid #007bff;
+      padding: 10px;
+      border-radius: 5px;
+    }
+
+    /* Responsive Adjustments for Marks Dropdown */
+    @media (max-width: 576px) {
+      .marks-dropdown {
+        max-height: 150px; /* Reduce max height on smaller screens */
+      }
+
+      .marks-dropdown-item {
+        padding: 0.4rem 0.8rem; /* Adjust padding for better fit */
+      }
+
+      /* Adjust input fields if necessary */
+      .form-control.level-select-marks {
+        font-size: 1rem;
+        padding: 0.5rem;
+      }
+    }
   </style>
 </head>
 
 <body>
-<div class="container mt-5">
-  <div class="text-center mb-4">
-    <h1 class="animate__animated animate__fadeInDown">APS Calculator</h1>
-    <p>Select your subjects, levels, and calculate your APS!</p>
-    <!-- Info Button -->
-    <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#infoModal">
-      <i class="fas fa-info-circle"></i> How It Works
-    </button>
-  </div>
+  <div class="container mt-5">
+    <div class="text-center mb-4">
+      <h1 class="animate__animated animate__fadeInDown">APS Calculator</h1>
+      <p>Select your subjects, levels, and calculate your APS instantly!</p>
+      <button type="button" class="btn btn-info mt-3" data-bs-toggle="modal" data-bs-target="#infoModal">
+        <i class="fas fa-info-circle"></i> How It Works
+      </button>
+    </div>
 
-  <div class="card p-4 shadow-lg" data-aos="fade-up">
-    <!-- Toggle for Range/Marks -->
+    
+    <div class="card p-4 shadow-lg" data-aos="fade-up">
+       <!-- Toggle Switch -->
     <div class="checkbox-wrapper-25">
       <label for="toggleRangeMarks" class="form-label" id="toggleLabel">Select by Range</label>
       <input type="checkbox" id="toggleRangeMarks">
     </div>
+      <form id="apsForm" novalidate>
+        <!-- Subject Inputs Container -->
+        <div id="subjectsContainer"></div>
 
-    <!-- Form Container (though we won't use native submit) -->
-    <form id="apsForm">
-      <!-- Subject Inputs Container -->
-      <div id="subjectsContainer"></div>
-
-      <!-- Add/Delete Optional Subjects -->
-      <div id="optionalSubjects"></div>
-      <div class="text-end">
-        <button type="button" class="btn btn-primary btn-sm" id="addSubject">
-          <i class="fas fa-plus-circle"></i> Add Optional Subject
-        </button>
-        <button type="button" class="btn btn-danger btn-sm" id="deleteSubject">
-          <i class="fas fa-minus-circle"></i> Delete Last Subject
-        </button>
-      </div>
-
-      <!-- Two separate Calculate Buttons -->
-      <div class="text-center mt-4">
-        <button type="button" class="btn btn-success btn-lg" id="calculateRange">
-          <i class="fas fa-calculator"></i> Calculate APS
-        </button>
-        <button type="button" class="btn btn-success btn-lg d-none" id="calculateMarks">
-          <i class="fas fa-calculator"></i> Calculate APS
-        </button>
-        <button type="button" class="btn btn-secondary btn-lg" id="resetForm">
-          <i class="fas fa-redo"></i> Reset
-        </button>
-      </div>
-    </form>
-  </div>
-
-  <!-- Result Popup -->
-  <div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content text-center">
-        <div class="modal-header">
-          <h5 class="modal-title" id="resultModalLabel">Your APS Score</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p>Your APS Score (with Life Orientation):</p>
-          <h3 id="apsWithLO" class="fw-bold text-center"></h3>
-          <p class="fw-bold text-success">Your Final APS Score (without Life Orientation):</p>
-          <h3 id="apsWithoutLO" class="fw-bold text-success text-center"></h3>
-          <div id="passLevelDisplay"></div>
-          <div id="distinctionsDisplay"></div>
-          <button class="btn btn-primary mt-3" onclick="window.location.href='aps-score-checker.html'">
-            Go to APS Score Checker
+        <!-- Add/Delete Optional Subjects -->
+        <div id="optionalSubjects"></div>
+        <div class="text-end mt-2">
+          <button type="button" class="btn btn-primary btn-sm" id="addSubject">
+            <i class="fas fa-plus-circle"></i> Add Optional Subject
+          </button>
+          <button type="button" class="btn btn-danger btn-sm d-none" id="deleteSubject">
+            <i class="fas fa-minus-circle"></i> Delete Last Subject
           </button>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+
+        <!-- Submit and Reset Buttons -->
+        <div class="text-center mt-4">
+          <button type="button" class="btn btn-success btn-lg" id="calculateAPS">
+            <i class="fas fa-calculator"></i> Calculate APS
+          </button>
+          <button type="button" class="btn btn-secondary btn-lg" id="resetForm">
+            <i class="fas fa-redo"></i> Reset
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Result Modal -->
+    <div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center">
+          <div class="modal-header">
+            <h5 class="modal-title" id="resultModalLabel">Your APS Score</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>Your APS Score (with Life Orientation):</p>
+            <h3 id="apsWithLO" class="fw-bold text-center"></h3>
+            <p class="fw-bold text-success">Your Final APS Score (without Life Orientation):</p>
+            <h3 id="apsWithoutLO" class="fw-bold text-success text-center"></h3>
+            <div id="averageDisplay" class="average-highlight my-3"></div>
+            <div id="passLevelDisplay"></div>
+            <div id="distinctionsDisplay"></div>
+            <button class="btn btn-primary mt-3" onclick="goToAPSChecker()">Go to APS Score Checker</button>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info Modal -->
+    <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="false`">
+      <div class="modal-dialog modal-dialog-left modal-lg">
+        <div class="modal-content text-center animate__animated animate__zoomIn">
+          <div class="modal-header">
+            <h5 class="modal-title" id="infoModalLabel">How to Use the APS Calculator</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>Welcome to the APS Calculator! Quickly calculate your Admission Point Score (APS) to determine your eligibility for various programs.</p>
+            <ul class="list-unstyled">
+              <li><i class="fas fa-check-circle text-success"></i> <strong>Select Your Subjects:</strong> Choose from the dropdown menu.</li>
+              <li><i class="fas fa-toggle-on text-primary"></i> <strong>Choose Mode:</strong> Toggle between Range Selection or Marks Input.</li>
+              <li><i class="fas fa-edit text-warning"></i> <strong>Enter Your Scores:</strong> You can select your score using Range or by clicking the toggle button to input Marks directly or choose from the dropdown menu.</li>
+              <li><i class="fas fa-plus-circle text-info"></i> <strong>Add Optional Subject:</strong> For those taking 8 subjects, you can add an additional subject.</li>
+              <li><i class="fas fa-calculator text-secondary"></i> <strong>Calculate APS:</strong> Click the "Calculate APS" button to view your score and eligibility, which will include your APS score with and without Life Orientation and your pass level (e.g., Bachelor’s Pass).</li>
+              <li><i class="fas fa-external-link-alt text-muted"></i> <strong>Explore Further:</strong> <a href="#" class="text-primary" id="exploreFurtherLink">APS Score Checker</a> to find courses you qualify for.</li>
+            </ul>
+            <p><em>Note:</em> APS (Admission Point Score) is used by universities to determine admission eligibility. Your APS with and without Life Orientation will be displayed, along with your pass level and any distinctions.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Info Modal -->
-  <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content text-center">
-        <div class="modal-header">
-          <h5 class="modal-title" id="infoModalLabel">How to Use the APS Calculator</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p>Welcome to the APS Calculator! Here's how to use it:</p>
-          <ul class="text-start">
-            <li>Select your subjects from the dropdown menus.</li>
-            <li>Choose either to input your marks directly or select the range (e.g., 70-79%). Use the toggle switch to switch between marks and ranges.</li>
-            <li>Fill in the values for each subject.</li>
-            <li>You can add one optional subject by clicking "Add Optional Subject".</li>
-            <li>Once all fields are filled, click "Calculate APS" to see your APS score and pass level.</li>
-          </ul>
-          <p>
-            The APS Calculator will compute your APS score with and without Life Orientation. 
-            It will also display your pass level based on your APS score and highlight any distinctions (subjects with marks 80% and above).
-          </p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+  <!-- External Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <script>
+ // Initialize AOS 
+    AOS.init();
 
-<!-- External Scripts -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    // Constants and Selectors
+    const subjectsContainer = document.getElementById("subjectsContainer");
+    const optionalSubjects = document.getElementById("optionalSubjects");
+    const addSubjectBtn = document.getElementById("addSubject");
+    const deleteSubjectBtn = document.getElementById("deleteSubject");
+    const resetFormBtn = document.getElementById("resetForm");
+    const toggleRangeMarks = document.getElementById("toggleRangeMarks");
+    const toggleLabel = document.getElementById("toggleLabel");
+    const form = document.getElementById("apsForm");
+    const resultModal = new bootstrap.Modal(document.getElementById("resultModal"));
+    const apsWithLO = document.getElementById("apsWithLO");
+    const apsWithoutLO = document.getElementById("apsWithoutLO");
+    const averageDisplay = document.getElementById("averageDisplay");
+    const passLevelDisplay = document.getElementById("passLevelDisplay");
+    const distinctionsDisplay = document.getElementById("distinctionsDisplay");
+    const exploreFurtherLink = document.getElementById("exploreFurtherLink");
 
-<!-- JavaScript Code -->
-<script>
-  AOS.init();
+    let subjectCount = 0;
 
-  const subjectsContainer   = document.getElementById("subjectsContainer");
-  const optionalSubjects    = document.getElementById("optionalSubjects");
-  const addSubjectBtn       = document.getElementById("addSubject");
-  const deleteSubjectBtn    = document.getElementById("deleteSubject");
-  const resetFormBtn        = document.getElementById("resetForm");
-  const toggleRangeMarks    = document.getElementById("toggleRangeMarks");
-  const toggleLabel         = document.getElementById("toggleLabel");
-  const form                = document.getElementById("apsForm");
-  const resultModal         = new bootstrap.Modal(document.getElementById("resultModal"));
+    // Subject Options
+    const subjectOptions = [
+      { value: "", text: "Select Additional Subject", disabled: true },
+      { value: "Accounting", text: "Accounting" },
+      { value: "Agricultural Management Practices", text: "Agricultural Management Practices" },
+      { value: "Agricultural Sciences", text: "Agricultural Sciences" },
+      { value: "Agricultural Technology", text: "Agricultural Technology" },
+      { value: "Business Studies", text: "Business Studies" },
+      { value: "Civil Technology", text: "Civil Technology" },
+      { value: "Computer Applications Technology", text: "Computer Applications Technology" },
+      { value: "Consumer Studies", text: "Consumer Studies" },
+      { value: "Dance Studies", text: "Dance Studies" },
+      { value: "Dramatic Arts", text: "Dramatic Arts" },
+      { value: "Economics", text: "Economics" },
+      { value: "Electrical Technology", text: "Electrical Technology" },
+      { value: "Engineering Graphics and Design", text: "Engineering Graphics and Design" },
+      { value: "Geography", text: "Geography" },
+      { value: "History", text: "History" },
+      { value: "Hospitality Studies", text: "Hospitality Studies" },
+      { value: "Information Technology", text: "Information Technology" },
+      { value: "Life Sciences", text: "Life Sciences" },
+      { value: "Music", text: "Music" },
+      { value: "Physical Sciences", text: "Physical Sciences" },
+      { value: "Religion Studies", text: "Religion Studies" },
+      { value: "Tourism", text: "Tourism" },
+      { value: "Visual Arts", text: "Visual Arts" }
+    ];
 
-  const apsWithLO           = document.getElementById("apsWithLO");
-  const apsWithoutLO        = document.getElementById("apsWithoutLO");
-  const passLevelDisplay    = document.getElementById("passLevelDisplay");
-  const distinctionsDisplay = document.getElementById("distinctionsDisplay");
+    // Home Languages
+    const homeLanguages = [
+      { value: "", text: "Select Home Language", disabled: true },
+      { value: "Afrikaans HL", text: "Afrikaans HL" },
+      { value: "English HL", text: "English HL" },
+      { value: "IsiNdebele HL", text: "IsiNdebele HL" },
+      { value: "IsiXhosa HL", text: "IsiXhosa HL" },
+      { value: "IsiZulu HL", text: "IsiZulu HL" },
+      { value: "Sepedi HL", text: "Sepedi HL" },
+      { value: "Sesotho HL", text: "Sesotho HL" },
+      { value: "Setswana HL", text: "Setswana HL" },
+      { value: "Siswati HL", text: "Siswati HL" },
+      { value: "Tshivenda HL", text: "Tshivenda HL" },
+      { value: "Xitsonga HL", text: "Xitsonga HL" }
+    ];
 
-  // Two separate calculate buttons:
-  const calcRangeBtn        = document.getElementById("calculateRange");
-  const calcMarksBtn        = document.getElementById("calculateMarks");
+    // First Additional Languages
+    const firstAdditionalLanguages = [
+      { value: "", text: "Select First Additional Language", disabled: true },
+      { value: "Afrikaans FAL", text: "Afrikaans FAL" },
+      { value: "English FAL", text: "English FAL" },
+      { value: "IsiNdebele FAL", text: "IsiNdebele FAL" },
+      { value: "IsiXhosa FAL", text: "IsiXhosa FAL" },
+      { value: "IsiZulu FAL", text: "IsiZulu FAL" },
+      { value: "Sepedi FAL", text: "Sepedi FAL" },
+      { value: "Sesotho FAL", text: "Sesotho FAL" },
+      { value: "Setswana FAL", text: "Setswana FAL" },
+      { value: "Siswati FAL", text: "Siswati FAL" },
+      { value: "Tshivenda FAL", text: "Tshivenda FAL" },
+      { value: "Xitsonga FAL", text: "Xitsonga FAL" }
+    ];
 
-  let subjectCount = 0;
+    // Required Subjects
+    const requiredSubjects = [
+      { id: "homeLanguage", label: "Home Language", options: homeLanguages },
+      { id: "firstAdditionalLanguage", label: "First Additional Language", options: firstAdditionalLanguages },
+      { id: "mathematics", label: "Mathematics", options: [
+          { value: "", text: "Select Mathematics Subject", disabled: true },
+          { value: "Mathematics", text: "Mathematics" },
+          { value: "Mathematical Literacy", text: "Mathematical Literacy" },
+          { value: "Technical Mathematics", text: "Technical Mathematics" }
+        ]
+      },
+      { id: "lifeOrientation", label: "Life Orientation", options: [
+          { value: "Life Orientation", text: "Life Orientation" }
+        ], disabled: true, default: "Life Orientation"
+      },
+      { id: "subject5", label: "Additional Subject 5", options: subjectOptions },
+      { id: "subject6", label: "Additional Subject 6", options: subjectOptions },
+      { id: "subject7", label: "Additional Subject 7", options: subjectOptions }
+    ];
 
-  // Subject options
-  const subjectOptions = [
-    { value: "", text: "Select Additional Subject", disabled: true },
-    { value: "Accounting", text: "Accounting" },
-    { value: "Agricultural Management Practices", text: "Agricultural Management Practices" },
-    { value: "Agricultural Sciences", text: "Agricultural Sciences" },
-    { value: "Agricultural Technology", text: "Agricultural Technology" },
-    { value: "Business Studies", text: "Business Studies" },
-    { value: "Civil Technology", text: "Civil Technology" },
-    { value: "Computer Applications Technology", text: "Computer Applications Technology" },
-    { value: "Consumer Studies", text: "Consumer Studies" },
-    { value: "Dance Studies", text: "Dance Studies" },
-    { value: "Dramatic Arts", text: "Dramatic Arts" },
-    { value: "Economics", text: "Economics" },
-    { value: "Electrical Technology", text: "Electrical Technology" },
-    { value: "Engineering Graphics and Design", text: "Engineering Graphics and Design" },
-    { value: "Geography", text: "Geography" },
-    { value: "History", text: "History" },
-    { value: "Hospitality Studies", text: "Hospitality Studies" },
-    { value: "Information Technology", text: "Information Technology" },
-    { value: "Life Sciences", text: "Life Sciences" },
-    { value: "Music", text: "Music" },
-    { value: "Physical Sciences", text: "Physical Sciences" },
-    { value: "Religion Studies", text: "Religion Studies" },
-    { value: "Tourism", text: "Tourism" },
-    { value: "Visual Arts", text: "Visual Arts" }
-  ];
+    // Pass Levels
+    const passLevels = [
+      {
+        level: "Bachelor's Degree Pass",
+        minAPS: 23,
+        description:
+          "Qualifies for degree programs at universities. Requires 40% in Home Language and 50% in four other subjects."
+      },
+      {
+        level: "Diploma Pass",
+        minAPS: 19,
+        description:
+          "Qualifies for diploma programs. Requires 40% in Home Language and three other subjects."
+      },
+      {
+        level: "Higher Certificate Pass",
+        minAPS: 15,
+        description:
+          "Allows entry into certificate programs or colleges. Requires 40% in Home Language and 30% in three additional subjects."
+      },
+      {
+        level: "NSC Pass",
+        minAPS: 14,
+        description:
+          "The basic requirement for Matric. Requires passing at least three subjects with 40%, two subjects with 30%, and failing no more than one subject."
+      },
+      {
+        level: "Failed",
+        minAPS: 0,
+        description:
+          "Did not meet the minimum requirements for an NSC pass."
+      }
+    ];
 
-  const homeLanguages = [
-    { value: "", text: "Select Home Language", disabled: true },
-    { value: "Afrikaans HL", text: "Afrikaans HL" },
-    { value: "English HL", text: "English HL" },
-    { value: "IsiNdebele HL", text: "IsiNdebele HL" },
-    { value: "IsiXhosa HL", text: "IsiXhosa HL" },
-    { value: "IsiZulu HL", text: "IsiZulu HL" },
-    { value: "Sepedi HL", text: "Sepedi HL" },
-    { value: "Sesotho HL", text: "Sesotho HL" },
-    { value: "Setswana HL", text: "Setswana HL" },
-    { value: "Siswati HL", text: "Siswati HL" },
-    { value: "Tshivenda HL", text: "Tshivenda HL" },
-    { value: "Xitsonga HL", text: "Xitsonga HL" }
-  ];
-  const firstAdditionalLanguages = [
-    { value: "", text: "Select First Additional Language", disabled: true },
-    { value: "Afrikaans FAL", text: "Afrikaans FAL" },
-    { value: "English FAL", text: "English FAL" },
-    { value: "IsiNdebele FAL", text: "IsiNdebele FAL" },
-    { value: "IsiXhosa FAL", text: "IsiXhosa FAL" },
-    { value: "IsiZulu FAL", text: "IsiZulu FAL" },
-    { value: "Sepedi FAL", text: "Sepedi FAL" },
-    { value: "Sesotho FAL", text: "Sesotho FAL" },
-    { value: "Setswana FAL", text: "Setswana FAL" },
-    { value: "Siswati FAL", text: "Siswati FAL" },
-    { value: "Tshivenda FAL", text: "Tshivenda FAL" },
-    { value: "Xitsonga FAL", text: "Xitsonga FAL" }
-  ];
-
-  // Required subjects
-  const requiredSubjects = [
-    { id: "homeLanguage", label: "Select Home Language", options: homeLanguages },
-    { id: "firstAdditionalLanguage", label: "Select First Additional Language", options: firstAdditionalLanguages },
-    {
-      id: "mathematics",
-      label: "Select Mathematics",
-      options: [
-        { value: "", text: "Select Mathematics Subject", disabled: true },
-        { value: "Mathematics", text: "Mathematics" },
-        { value: "Mathematical Literacy", text: "Mathematical Literacy" },
-        { value: "Technical Mathematics", text: "Technical Mathematics" }
-      ]
-    },
-    {
-      id: "lifeOrientation",
-      label: "Select Life Orientation",
-      options: [{ value: "Life Orientation", text: "Life Orientation" }],
-      disabled: true,
-      default: "Life Orientation"
-    },
-    { id: "subject5", label: "Select Additional Subject 5", options: subjectOptions },
-    { id: "subject6", label: "Select Additional Subject 6", options: subjectOptions },
-    { id: "subject7", label: "Select Additional Subject 7", options: subjectOptions }
-  ];
-
-  // Pass Levels
-  const passLevels = [
-    {
-      level: "Bachelor's Degree Pass",
-      minAPS: 23,
-      description:
-        "Qualifies students for degree programs at universities. Requires 40% in Home Language and 50% in four other subjects."
-    },
-    {
-      level: "Diploma Pass",
-      minAPS: 19,
-      description:
-        "Qualifies students for diploma programs. Requires 40% in Home Language and three other subjects."
-    },
-    {
-      level: "Higher Certificate Pass",
-      minAPS: 15,
-      description:
-        "Allows entry into certificate programs or colleges. Requires 40% in Home Language and 30% in three additional subjects."
-    },
-    {
-      level: "NSC Pass",
-      minAPS: 14,
-      description:
-        "The basic requirement for Matric. Requires passing at least three subjects with 40%, two subjects with 30%, and failing no more than one subject."
-    },
-    {
-      level: "Failed",
-      minAPS: 0,
-      description:
-        "Did not meet the minimum requirements for an NSC pass."
-    }
-  ];
-
-  // Generate Marks Options
-  function generateMarksOptions() {
-    let options = `<option value="" disabled selected>Select Marks</option>`;
-    for (let i = 100; i >= 0; i--) {
-      options += `<option value="${i}">${i}</option>`;
-    }
-    return options;
-  }
-
-  // Create the Range & Marks selects
-  // Use col-12 col-md-6 for responsiveness in each row
-  function createLevelSelect(isLO = false) {
-    return `
-      <select class="form-select level-select-range" ${isLO ? 'data-lo="true"' : ''} required>
-        <option value="" disabled selected>Select Range</option>
-        <option value="7">(80-100%)</option>
-        <option value="6">(70-79%)</option>
-        <option value="5">(60-69%)</option>
-        <option value="4">(50-59%)</option>
-        <option value="3">(40-49%)</option>
-        <option value="2">(30-39%)</option>
-        <option value="1">(0-29%)</option>
-      </select>
-
-      <select class="form-select level-select-marks d-none" ${isLO ? 'data-lo="true"' : ''} required>
-        ${generateMarksOptions()}
-      </select>
-    `;
-  }
-
-  // Populate required subjects on load
-  // Each subject row will be col-12 col-md-6 for stacking on mobile
-  requiredSubjects.forEach(subject => {
-    subjectsContainer.innerHTML += `
-      <div class="row mb-3">
-        <div class="col-12 col-md-6">
-          <label for="${subject.id}" class="form-label">${subject.label}</label>
-          <select id="${subject.id}" class="form-select subject-select" 
-            ${subject.disabled ? "disabled" : ""} required>
-            ${
-              subject.options
-                .map(option => `
-                  <option value="${option.value}"
-                    ${option.disabled ? "disabled" : ""}
-                    ${option.value === "" ? "selected" : ""}>
-                    ${option.text}
-                  </option>
-                `)
-                .join("")
-            }
-          </select>
-        </div>
-        <div class="col-12 col-md-6">
-          <label class="form-label">Select Value</label>
-          ${createLevelSelect(subject.id === "lifeOrientation")}
-        </div>
-      </div>
-    `;
-  });
-
-  // Toggle between Range and Marks
-  toggleRangeMarks.addEventListener("change", () => {
-    const isMarksMode = toggleRangeMarks.checked;
-    toggleLabel.textContent = isMarksMode ? "Select by Marks" : "Select by Range";
-
-    // Show/hide the appropriate Calculate button
-    if (isMarksMode) {
-      calcRangeBtn.classList.add("d-none");
-      calcMarksBtn.classList.remove("d-none");
-    } else {
-      calcMarksBtn.classList.add("d-none");
-      calcRangeBtn.classList.remove("d-none");
+    // HELPER FUNCTIONS
+    // Convert typed marks 0–100 => APS (1–7)
+    function marksToAPS(marks) {
+      if (marks >= 80) return 7;
+      if (marks >= 70) return 6;
+      if (marks >= 60) return 5;
+      if (marks >= 50) return 4;
+      if (marks >= 40) return 3;
+      if (marks >= 30) return 2;
+      return 1; 
     }
 
-    // Switch visible selects between range vs marks
-    document.querySelectorAll(".level-select-range, .level-select-marks").forEach(select => {
-      const correspondingSelect = select.parentElement.querySelector(
-        select.classList.contains("level-select-range")
-          ? ".level-select-marks"
-          : ".level-select-range"
-      );
+    // Convert Range (APS) => approximate “median” marks
+    function rangeToMedianMarks(apsPoints) {
+      switch (apsPoints) {
+        case 7: return 90; 
+        case 6: return 75;
+        case 5: return 65;
+        case 4: return 55;
+        case 3: return 45;
+        case 2: return 35;
+        case 1: return 20;
+        default: return "";
+      }
+    }
 
-      if (!select.classList.contains("d-none")) {
-        const val = parseInt(select.value);
-        if (!isNaN(val)) {
-          if (select.classList.contains("level-select-range")) {
-            // Convert from APS => median marks
-            const medianMarks = rangeToMedianMarks(val);
-            correspondingSelect.value = medianMarks;
-          } else {
-            // Convert from marks => APS
-            const apsPoints = marksToAPS(val);
-            correspondingSelect.value = apsPoints;
-          }
+    // Pass Level
+    function getPassLevel(totalAPS) {
+      for (const level of passLevels) {
+        if (totalAPS >= level.minAPS) {
+          return level;
         }
       }
-      // Toggle
-      select.classList.toggle("d-none");
-    });
-  });
-
-  // Helpers
-  function marksToAPS(marks) {
-    if (marks >= 90) return 7;
-    if (marks >= 80) return 6;
-    if (marks >= 70) return 5;
-    if (marks >= 60) return 4;
-    if (marks >= 50) return 3;
-    if (marks >= 40) return 2;
-    if (marks >= 30) return 1;
-    return 0;
-  }
-  function rangeToMedianMarks(apsPoints) {
-    switch (apsPoints) {
-      case 7: return 95;
-      case 6: return 85;
-      case 5: return 75;
-      case 4: return 65;
-      case 3: return 55;
-      case 2: return 45;
-      case 1: return 35;
-      case 0: return 15;
-      default: return "";
+      return passLevels[passLevels.length - 1];
     }
-  }
-  function getPassLevel(totalAPS) {
-    for (let i = 0; i < passLevels.length; i++) {
-      if (totalAPS >= passLevels[i].minAPS) {
-        return passLevels[i];
+
+    // CREATE THE RANGE + MARKS SELECT
+    function createLevelSelect(isLO = false) {
+      const wrapperDiv = document.createElement('div');
+      wrapperDiv.className = 'select-container';
+
+      // Range Select
+      const rangeSelect = document.createElement('select');
+      rangeSelect.className = 'form-select level-select-range';
+      rangeSelect.required = true;
+      if (isLO) rangeSelect.dataset.lo = "true";
+
+      const rangeOptions = [
+        { value: "", text: "Select Range", disabled: true, selected: true },
+        { value: "7", text: "(80-100%)" },
+        { value: "6", text: "(70-79%)" },
+        { value: "5", text: "(60-69%)" },
+        { value: "4", text: "(50-59%)" },
+        { value: "3", text: "(40-49%)" },
+        { value: "2", text: "(30-39%)" },
+        { value: "1", text: "(0-29%)" }
+      ];
+
+      rangeOptions.forEach(opt => {
+        const option = document.createElement('option');
+        option.value = opt.value;
+        option.textContent = opt.text;
+        if (opt.disabled) option.disabled = true;
+        if (opt.selected) option.selected = true;
+        rangeSelect.appendChild(option);
+      });
+
+      // Marks Input
+      const marksInputWrapper = document.createElement('div');
+      marksInputWrapper.className = 'marks-input-wrapper d-none';
+
+      const marksInput = document.createElement('input');
+      marksInput.type = 'number';
+      marksInput.className = 'form-control level-select-marks';
+      marksInput.placeholder = 'Enter marks (1-100)';
+      marksInput.min = 1;
+      marksInput.max = 100;
+      marksInput.required = true;
+      if (isLO) marksInput.dataset.lo = "true";
+
+      // Create the dynamic dropdown for marks (1-100)
+      const marksDropdown = document.createElement('div');
+      marksDropdown.className = 'marks-dropdown';
+
+      // Generate dropdown items from 1 to 100
+      for (let i = 1; i <= 100; i++) {
+        const markItem = document.createElement('div');
+        markItem.className = 'marks-dropdown-item';
+        markItem.setAttribute('data-value', i);
+        markItem.textContent = i;
+        marksDropdown.appendChild(markItem);
       }
+
+      marksInputWrapper.appendChild(marksInput);
+      marksInputWrapper.appendChild(marksDropdown);
+      const marksErrorDiv = document.createElement('div');
+      marksErrorDiv.className = 'error-message';
+      marksInputWrapper.appendChild(marksErrorDiv);
+
+      // Error Div for Range Select
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error-message';
+
+      wrapperDiv.appendChild(rangeSelect);
+      wrapperDiv.appendChild(marksInputWrapper);
+      wrapperDiv.appendChild(errorDiv);
+
+      return wrapperDiv;
     }
-    return passLevels[passLevels.length - 1];
+
+    // GENERATE OPTIONS FOR SELECT ELEMENTS
+    function generateOptions(options, disabled = false) {
+      return options.map(option => `
+        <option value="${option.value}" ${option.disabled ? "disabled" : ""} ${option.value === "" ? "selected" : ""}>
+          ${option.text}
+        </option>
+      `).join("");
+    }
+
+    // POPULATE REQUIRED SUBJECTS
+    requiredSubjects.forEach(subject => {
+      const row = document.createElement('div');
+      row.className = 'row mb-3';
+
+      // Subject select column
+      const subjectCol = document.createElement('div');
+      subjectCol.className = 'col-12 col-md-6';
+
+      const label = document.createElement('label');
+      label.className = 'form-label';
+      label.setAttribute('for', subject.id);
+      label.textContent = subject.label;
+
+      const select = document.createElement('select');
+      select.id = subject.id;
+      select.className = 'form-select subject-select';
+      select.required = true;
+      if (subject.disabled) select.disabled = true;
+      select.innerHTML = generateOptions(subject.options, subject.disabled);
+
+      const errorDiv = document.createElement('div');
+      errorDiv.id = `${subject.id}-error`;
+      errorDiv.className = 'error-message';
+
+      subjectCol.appendChild(label);
+      subjectCol.appendChild(select);
+      subjectCol.appendChild(errorDiv);
+
+      // Value select column
+      const valueCol = document.createElement('div');
+      valueCol.className = 'col-12 col-md-6';
+
+      const valueLabel = document.createElement('label');
+      valueLabel.className = 'form-label';
+      valueLabel.textContent = 'Select Range / Enter Marks';
+
+      const levelSelect = createLevelSelect(subject.id === "lifeOrientation");
+
+      valueCol.appendChild(valueLabel);
+      valueCol.appendChild(levelSelect);
+
+      // Append to row
+      row.appendChild(subjectCol);
+      row.appendChild(valueCol);
+
+      // Append row to container
+      subjectsContainer.appendChild(row);
+    });
+
+   // ADD OPTIONAL SUBJECT FUNCTIONALITY
+addSubjectBtn.addEventListener("click", () => {
+  if (subjectCount >= 1) {
+    alert("Only 1 optional subject is allowed.");
+    return;
   }
 
-  // Add Optional Subject
-  addSubjectBtn.addEventListener("click", () => {
-    if (subjectCount < 1) {
-      subjectCount++;
-      // Use col-12 col-md-6 for responsiveness
-      optionalSubjects.innerHTML += `
-        <div class="row mb-3" id="optionalSubject${subjectCount}">
-          <div class="col-12 col-md-6">
-            <label class="form-label">Optional Subject</label>
-            <select class="form-select subject-select optional-subject" required>
-              ${
-                subjectOptions
-                  .map(option => `
-                    <option value="${option.value}"
-                      ${option.disabled ? "disabled" : ""}
-                      ${option.value === "" ? "selected" : ""}>
-                      ${option.text}
-                    </option>
-                  `)
-                  .join("")
-              }
-            </select>
-          </div>
-          <div class="col-12 col-md-6">
-            <label class="form-label">Select Value</label>
-            ${createLevelSelect()}
-          </div>
-        </div>
-      `;
-      updateSubjectOptions();
-      // Also re-apply toggle state to the new selects
-      applyCurrentToggleState();
-    } else {
-      alert("Only 1 optional subject allowed.");
-    }
-  });
+  subjectCount++;
+  const row = document.createElement('div');
+  row.className = 'row mb-3';
+  row.id = `optionalSubject${subjectCount}`;
 
-  // Delete Optional Subject
-  deleteSubjectBtn.addEventListener("click", () => {
-    if (subjectCount > 0) {
-      document.getElementById(`optionalSubject${subjectCount}`).remove();
-      subjectCount--;
-      updateSubjectOptions();
-    }
-  });
+  // Optional Subject select column
+  const subjectCol = document.createElement('div');
+  subjectCol.className = 'col-12 col-md-6';
 
-  // Reset form
-  resetFormBtn.addEventListener("click", () => {
-    form.reset();
-    optionalSubjects.innerHTML = "";
-    subjectCount = 0;
-    // Default to Range mode
-    toggleRangeMarks.checked = false;
-    toggleLabel.textContent = "Select by Range";
-    calcMarksBtn.classList.add("d-none");
-    calcRangeBtn.classList.remove("d-none");
+  const label = document.createElement('label');
+  label.className = 'form-label';
+  label.textContent = "Optional Subject";
 
-    // Show range, hide marks
-    document.querySelectorAll(".level-select-range").forEach(s => s.classList.remove("d-none"));
-    document.querySelectorAll(".level-select-marks").forEach(s => s.classList.add("d-none"));
-    updateSubjectOptions();
-  });
+  const select = document.createElement('select');
+  select.className = 'form-select subject-select optional-subject';
+  select.required = true;
+  select.innerHTML = generateOptions(subjectOptions);
 
-  // Prevent duplicate selections
-  function updateSubjectOptions() {
-    const subjectSelects = document.querySelectorAll(".subject-select");
-    const selectedSubjects = Array.from(subjectSelects).map(select => select.value);
+  const errorDiv = document.createElement('div');
+  errorDiv.id = `optionalSubject${subjectCount}-error`;
+  errorDiv.className = 'error-message';
 
-    subjectSelects.forEach(select => {
-      const currentValue = select.value;
-      const options = select.querySelectorAll("option");
-      options.forEach(option => {
-        if (option.value !== "" && option.value !== currentValue) {
-          if (selectedSubjects.includes(option.value)) {
-            option.disabled = true;
-          } else {
-            option.disabled = false;
+  subjectCol.appendChild(label);
+  subjectCol.appendChild(select);
+  subjectCol.appendChild(errorDiv);
+
+  // Value select column
+  const valueCol = document.createElement('div');
+  valueCol.className = 'col-12 col-md-6';
+
+  const valueLabel = document.createElement('label');
+  valueLabel.className = 'form-label';
+  valueLabel.textContent = 'Select Range / Enter Marks';
+
+  const levelSelect = createLevelSelect();
+
+  valueCol.appendChild(valueLabel);
+  valueCol.appendChild(levelSelect);
+
+  // Append to row
+  row.appendChild(subjectCol);
+  row.appendChild(valueCol);
+
+  // Append row to optional subjects container
+  optionalSubjects.appendChild(row);
+
+  // Show delete button and hide add button
+  deleteSubjectBtn.classList.remove('d-none');
+  addSubjectBtn.classList.add('d-none');  // Hide "Add" button
+
+  // Auto-fill if in Marks mode
+  if (toggleRangeMarks.checked) {
+    const marksInput = row.querySelector('.level-select-marks');
+    marksInput.value = "";
+  }
+
+  updateSubjectOptions();
+});
+
+// DELETE OPTIONAL SUBJECT FUNCTIONALITY
+deleteSubjectBtn.addEventListener('click', () => {
+  if (subjectCount <= 0) return;
+
+  const row = document.getElementById(`optionalSubject${subjectCount}`);
+  if (row) {
+    optionalSubjects.removeChild(row);
+    subjectCount--;
+  }
+
+  if (subjectCount === 0) {
+    deleteSubjectBtn.classList.add('d-none');
+    addSubjectBtn.classList.remove('d-none');  // Show "Add" button again
+  }
+
+  updateSubjectOptions();
+});
+
+    // TOGGLE SWITCH: Range vs. Marks with Auto-fill
+    toggleRangeMarks.addEventListener('change', () => {
+      const isMarksMode = toggleRangeMarks.checked;
+      toggleLabel.textContent = isMarksMode ? "Select by Marks" : "Select by Range";
+
+      const allSelectContainers = document.querySelectorAll('.select-container');
+
+      allSelectContainers.forEach(container => {
+        const rangeSelect = container.querySelector('.level-select-range');
+        const marksWrapper = container.querySelector('.marks-input-wrapper');
+
+        if (isMarksMode) {
+          // Auto-fill marks based on selected range
+          const selectedAPS = parseInt(rangeSelect.value);
+          if (!isNaN(selectedAPS)) {
+            marksWrapper.querySelector('.level-select-marks').value = rangeToMedianMarks(selectedAPS);
           }
+          rangeSelect.classList.add('d-none');
+          rangeSelect.removeAttribute('required');
+          marksWrapper.classList.remove('d-none');
+          marksWrapper.querySelector('.level-select-marks').setAttribute('required', true);
+        } else {
+          // Auto-fill range based on entered marks
+          const enteredMarks = parseInt(marksWrapper.querySelector('.level-select-marks').value);
+          if (!isNaN(enteredMarks)) {
+            rangeSelect.value = marksToAPS(enteredMarks).toString();
+          }
+          marksWrapper.classList.add('d-none');
+          marksWrapper.querySelector('.level-select-marks').removeAttribute('required');
+          rangeSelect.classList.remove('d-none');
+          rangeSelect.setAttribute('required', true);
         }
       });
     });
-  }
 
-  document.addEventListener("change", function(e) {
-    if (e.target && e.target.classList.contains("subject-select")) {
-      updateSubjectOptions();
-    }
-  });
-
-  // If we add a new optional subject while in Marks mode, we must hide the Range selects
-  function applyCurrentToggleState() {
-    const isMarksMode = toggleRangeMarks.checked;
-    document.querySelectorAll(".row").forEach(row => {
-      const rangeSelect = row.querySelector(".level-select-range");
-      const marksSelect = row.querySelector(".level-select-marks");
-      if (rangeSelect && marksSelect) {
-        if (isMarksMode) {
-          rangeSelect.classList.add("d-none");
-          marksSelect.classList.remove("d-none");
+    // HANDLE MARKS DROPDOWN ITEM CLICK
+    document.addEventListener('click', (e) => {
+      // Handle dropdown item selection
+      if (e.target.classList.contains('marks-dropdown-item')) {
+        const marksInput = e.target.closest('.marks-input-wrapper').querySelector('.level-select-marks');
+        marksInput.value = e.target.getAttribute('data-value');
+        const dropdown = e.target.closest('.marks-dropdown');
+        dropdown.classList.remove('show');
+        validateField(marksInput);
+      } else {
+        // Toggle dropdown on input focus
+        if (e.target.classList.contains('level-select-marks')) {
+          const dropdown = e.target.closest('.marks-input-wrapper').querySelector('.marks-dropdown');
+          dropdown.classList.toggle('show');
         } else {
-          marksSelect.classList.add("d-none");
-          rangeSelect.classList.remove("d-none");
+          // Close all dropdowns if clicking outside
+          const dropdowns = document.querySelectorAll('.marks-dropdown');
+          dropdowns.forEach(dropdown => {
+            dropdown.classList.remove('show');
+          });
         }
       }
     });
-  }
 
-  // Shared calculation logic
-  function calculateAPS() {
-    let totalAPS          = 0;
-    let loPoints          = 0;
-    let allFieldsFilled   = true;
-    let distinctions      = [];
-    let distinctionCount  = 0;
-
-    const subjectRows = document.querySelectorAll("#subjectsContainer .row, #optionalSubjects .row");
-
-    for (let row of subjectRows) {
-      const subjectSelect = row.querySelector(".subject-select");
-      const valueSelect   = row.querySelector(".level-select-range:not(.d-none), .level-select-marks:not(.d-none)");
-
-      if (!subjectSelect || !valueSelect) {
-        allFieldsFilled = false;
-        break;
+    // Prevent form submission via Enter key in marks input
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && e.target.classList.contains('level-select-marks')) {
+        e.preventDefault();
+        const dropdown = e.target.closest('.marks-input-wrapper').querySelector('.marks-dropdown');
+        dropdown.classList.remove('show');
       }
-      if (subjectSelect.value === "" || valueSelect.value === "") {
-        allFieldsFilled = false;
-        break;
-      }
+    });
 
-      const val = parseInt(valueSelect.value);
-      if (isNaN(val)) {
-        allFieldsFilled = false;
-        break;
+    // Enforce max 100 on marks input
+    document.addEventListener('input', (e) => {
+      if (e.target.classList.contains('level-select-marks')) {
+        let value = parseInt(e.target.value);
+        if (isNaN(value)) {
+          e.target.value = "";
+        } else {
+          value = Math.max(1, Math.min(100, value));
+          e.target.value = value;
+        }
+        validateField(e.target);
       }
+    });
 
-      let points = 0;
-      let marks  = 0;
-      // If it's a Marks select
-      if (valueSelect.classList.contains("level-select-marks")) {
-        marks  = val;
-        points = marksToAPS(val);
+    // VALIDATION FUNCTIONS
+    function showError(field, message) {
+      const errorDiv = field.parentElement.querySelector('.error-message');
+      if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = "block";
       }
-      // If it's a Range select
-      else if (valueSelect.classList.contains("level-select-range")) {
-        points = val;
-        marks  = rangeToMedianMarks(val);
-      } else {
-        allFieldsFilled = false;
-        break;
-      }
+      field.classList.add('input-error');
+    }
 
-      // If subject is Life Orientation, do not add to total
-      if (subjectSelect.id === "lifeOrientation") {
-        loPoints = points;
-      } else {
-        totalAPS += points;
+    function hideError(field) {
+      const errorDiv = field.parentElement.querySelector('.error-message');
+      if (errorDiv) {
+        errorDiv.textContent = "";
+        errorDiv.style.display = "none";
       }
+      field.classList.remove('input-error');
+    }
 
-      // Distinctions if marks >= 80
-      if (marks >= 80) {
-        const subjectName = subjectSelect.options[subjectSelect.selectedIndex].text;
-        distinctions.push(subjectName);
-        distinctionCount++;
+    function validateField(field) {
+      if (field.classList.contains('subject-select')) {
+        if (!field.value) {
+          showError(field, "Please select a subject.");
+        } else {
+          hideError(field);
+        }
+      } else if (field.classList.contains('level-select-range')) {
+        if (!field.value) {
+          showError(field, "Please select a range.");
+        } else {
+          hideError(field);
+        }
+      } else if (field.classList.contains('level-select-marks')) {
+        if (field.value === "") {
+          showError(field, "Please enter marks for the selected subject.");
+        } else if (isNaN(field.value) || field.value < 1 || field.value > 100) {
+          showError(field, "Please enter valid marks between 1 and 100.");
+        } else {
+          hideError(field);
+        }
       }
     }
 
-    if (!allFieldsFilled) {
-      alert("Please fill in all the fields correctly.");
-      return;
+    function clearAllErrors() {
+      const errorMessages = document.querySelectorAll('.error-message');
+      errorMessages.forEach(errorDiv => {
+        errorDiv.textContent = "";
+        errorDiv.style.display = "none";
+      });
+
+      const errorFields = document.querySelectorAll('.input-error');
+      errorFields.forEach(field => {
+        field.classList.remove('input-error');
+      });
     }
 
-    const totalAPSWithLO = totalAPS + loPoints;
-    const passLevelInfo  = getPassLevel(totalAPS);
+    // VALIDATE ALL FIELDS BEFORE CALCULATION
+    function validateFields() {
+      let isValid = true;
+      clearAllErrors();
 
-    // Show results
-    apsWithLO.textContent    = totalAPSWithLO;
-    apsWithoutLO.textContent = totalAPS;
-    passLevelDisplay.innerHTML = `
-      <p class="fw-bold">Pass Level: ${passLevelInfo.level}</p>
-      <p>${passLevelInfo.description}</p>
-    `;
-    if (distinctionCount > 0) {
-      distinctionsDisplay.innerHTML = `
-        <p class="fw-bold">Distinction Count: ${distinctionCount}</p>
-        <p>You got distinctions in the following subjects:</p>
-        <ul>
-          ${distinctions.map(s => `<li>${s}</li>`).join("")}
-        </ul>
+      const isMarksMode = toggleRangeMarks.checked;
+      const subjectRows = document.querySelectorAll("#subjectsContainer .row, #optionalSubjects .row");
+
+      subjectRows.forEach(row => {
+        const subjectSelect = row.querySelector(".subject-select");
+        const valueElement = isMarksMode ? row.querySelector(".level-select-marks") : row.querySelector(".level-select-range");
+
+        // Validate subject selection
+        if (!subjectSelect.value) {
+          showError(subjectSelect, "Please select a subject.");
+          isValid = false;
+        } else {
+          hideError(subjectSelect);
+        }
+
+        // Validate value input/select
+        if (isMarksMode) {
+          if (valueElement.value === "") {
+            showError(valueElement, "Please enter marks for the selected subject.");
+            isValid = false;
+          } else if (isNaN(valueElement.value) || valueElement.value < 1 || valueElement.value > 100) {
+            showError(valueElement, "Please enter valid marks between 1 and 100.");
+            isValid = false;
+          } else {
+            hideError(valueElement);
+          }
+        } else {
+          if (!valueElement.value) {
+            showError(valueElement, "Please select a range for the selected subject.");
+            isValid = false;
+          } else {
+            hideError(valueElement);
+          }
+        }
+      });
+
+      return isValid;
+    }
+
+    // GET CURRENT APS FROM RANGE SELECT
+    function getCurrentAPSFromRangeSelect() {
+      const rangeSelects = document.querySelectorAll('.level-select-range');
+      let currentAPS = null;
+      rangeSelects.forEach(select => {
+        if (!select.classList.contains('d-none') && select.value) {
+          currentAPS = parseInt(select.value);
+        }
+      });
+      return currentAPS;
+    }
+
+    // CALCULATE APS FUNCTION
+    function calculateAPS() {
+      if (!validateFields()) {
+        return;
+      }
+
+      let totalAPS = 0;
+      let loPoints = 0;
+      let totalMarks = 0;
+      let numberOfSubjects = 0;
+      let distinctions = [];
+
+      const isMarksMode = toggleRangeMarks.checked;
+      const subjectRows = document.querySelectorAll("#subjectsContainer .row, #optionalSubjects .row");
+
+      subjectRows.forEach(row => {
+        const subjectSelect = row.querySelector(".subject-select");
+        const valueElement = isMarksMode ? row.querySelector(".level-select-marks") : row.querySelector(".level-select-range");
+        let points = 0;
+        let marks = 0;
+
+        if (isMarksMode) {
+          marks = parseInt(valueElement.value);
+          points = marksToAPS(marks);
+        } else {
+          points = parseInt(valueElement.value);
+          marks = rangeToMedianMarks(points);
+        }
+
+        if (subjectSelect.id === "lifeOrientation") {
+          loPoints = points;
+        } else {
+          totalAPS += points;
+        }
+
+        if (marks >= 80) {
+          const subjectName = subjectSelect.options[subjectSelect.selectedIndex].text;
+          distinctions.push(subjectName);
+        }
+
+        if (isMarksMode) {
+          totalMarks += marks;
+        }
+
+        numberOfSubjects++;
+      });
+
+      const totalAPSWithLO = totalAPS + loPoints;
+      const passLevelInfo = getPassLevel(totalAPS);
+
+      apsWithLO.textContent = totalAPSWithLO;
+      apsWithoutLO.textContent = totalAPS;
+
+      passLevelDisplay.innerHTML = `
+        <p class="fw-bold">Pass Level: ${passLevelInfo.level}</p>
+        <p>${passLevelInfo.description}</p>
       `;
-    } else {
-      distinctionsDisplay.innerHTML = "";
+
+      if (distinctions.length > 0) {
+        distinctionsDisplay.innerHTML = `
+          <p class="fw-bold">Distinction Count: ${distinctions.length}</p>
+          <p>You have distinctions in the following subjects:</p>
+          <ul>${distinctions.map(subject => `<li>${subject}</li>`).join("")}</ul>
+        `;
+      } else {
+        distinctionsDisplay.innerHTML = "";
+      }
+
+      if (isMarksMode) {
+        const average = (totalMarks / numberOfSubjects).toFixed(2);
+        averageDisplay.innerHTML = `
+          <p class="fw-bold">Average Marks:</p>
+          <h4>${average}</h4>
+        `;
+      } else {
+        averageDisplay.innerHTML = `
+          <p class="fw-bold text-warning">Switch to Marks mode to see your average.</p>
+        `;
+      }
+
+      resultModal.show();
     }
 
-    resultModal.show();
+    // FUNCTION TO NAVIGATE TO APS SCORE CHECKER
+    function goToAPSChecker() {
+      const finalScore = apsWithoutLO.textContent.trim();
+      const score = parseInt(finalScore);
+
+      if (isNaN(score) || score < 0) {
+        alert("Invalid APS Score. Please calculate your APS again.");
+        return;
+      }
+
+    // Redirect to APS Score Checker with the score as a query parameter
+    window.location.href = `https://www.youtube.com/watch?v=xvFZjo5PgG0?score=${score}`;
   }
 
-  // Attach the same calculation logic to both buttons
-  calcRangeBtn.addEventListener("click", () => calculateAPS());
-  calcMarksBtn.addEventListener("click", () => calculateAPS());
-</script>
+    // EVENT LISTENERS
+    document.getElementById('calculateAPS').addEventListener('click', calculateAPS);
+
+   // RESET FORM FUNCTIONALITY
+  resetFormBtn.addEventListener('click', () => {
+    // Manually reset all select fields to their first option (placeholder)
+    const allSelects = form.querySelectorAll('select');
+    allSelects.forEach(select => {
+      // Skip disabled selects like Life Orientation
+      if (!select.disabled) {
+        select.selectedIndex = 0;
+        select.classList.remove('input-error');
+      }
+    });
+    
+    // Clear all marks inputs
+    const allMarksInputs = form.querySelectorAll('.level-select-marks');
+    allMarksInputs.forEach(input => {
+      input.value = '';
+      input.classList.remove('input-error');
+    });
+    
+    // Hide all marks input wrappers
+    const allMarksWrappers = form.querySelectorAll('.marks-input-wrapper');
+    allMarksWrappers.forEach(wrapper => {
+      wrapper.classList.add('d-none');
+    });
+    
+    // Reset the toggle switch to "Select by Range"
+    toggleRangeMarks.checked = false;
+    toggleLabel.textContent = "Select by Range";
+    
+    // Show all range selects and hide marks inputs
+    const allRangeSelects = form.querySelectorAll('.level-select-range');
+    allRangeSelects.forEach(select => {
+      select.classList.remove('d-none');
+      select.required = true;
+    });
+    
+    // Ensure marks input wrappers are hidden
+    allMarksWrappers.forEach(wrapper => {
+      wrapper.classList.add('d-none');
+    });
+    
+    // Remove all optional subjects
+    optionalSubjects.innerHTML = '';
+    subjectCount = 0;
+    
+    // Hide delete subject button
+    deleteSubjectBtn.classList.add('d-none');
+    
+    // Clear result displays
+    averageDisplay.innerHTML = '';
+    passLevelDisplay.innerHTML = '';
+    distinctionsDisplay.innerHTML = '';
+    
+    // Clear all error messages and highlights
+    clearAllErrors();
+    
+    // Update subject options to re-enable all options
+    updateSubjectOptions();
+  });
+
+    // PREVENT FORM SUBMISSION VIA ENTER KEY
+    form.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+      }
+    });
+
+    // HANDLE SUBJECT SELECTION CHANGES TO PREVENT DUPLICATES
+    form.addEventListener('change', updateSubjectOptions);
+
+    // INITIALIZE SUBJECT OPTIONS ON LOAD
+    document.addEventListener("DOMContentLoaded", () => {
+      updateSubjectOptions();
+    });
+
+    // UPDATE SUBJECT OPTIONS TO PREVENT DUPLICATES
+    function updateSubjectOptions() {
+      const selects = document.querySelectorAll('.subject-select');
+      const selectedValues = Array.from(selects)
+        .map(select => select.value)
+        .filter(val => val !== "");
+
+      selects.forEach(select => {
+        const currentValue = select.value;
+        Array.from(select.options).forEach(option => {
+          if (option.value && option.value !== currentValue) {
+            option.disabled = selectedValues.includes(option.value);
+          } else {
+            option.disabled = option.value === "";
+          }
+        });
+      });
+    }
+
+    // REAL-TIME VALIDATION
+    form.addEventListener('input', (e) => {
+      if (e.target.classList.contains('subject-select') || 
+          e.target.classList.contains('level-select-range') || 
+          e.target.classList.contains('level-select-marks')) {
+        validateField(e.target);
+      }
+    });
+
+    // CLICK OUTSIDE DROPDOWN TO CLOSE IT
+    document.addEventListener('click', (e) => {
+      const dropdowns = document.querySelectorAll('.marks-dropdown');
+      dropdowns.forEach(dropdown => {
+        if (!dropdown.contains(e.target) && !e.target.classList.contains('level-select-marks')) {
+          dropdown.classList.remove('show');
+        }
+      });
+    });
+
+   // EXPLORE FURTHER LINK FUNCTIONALITY
+   exploreFurtherLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    // Check if APS score is calculated
+    const finalScore = apsWithoutLO.textContent.trim();
+    const score = parseInt(finalScore);
+
+    if (!isNaN(score) && score > 0) {
+      window.location.href = `https://www.youtube.com/watch?v=xvFZjo5PgG0`;
+    } else {
+      // If APS score is not calculated, redirect without score
+      window.location.href = `https://www.youtube.com/watch?v=xvFZjo5PgG0`;
+    }
+  });
+
+    // Function to map marks to APS points
+    function calculatePointsFromMarks(marks) {
+      if (marks >= 90 && marks <= 100) return 7;
+      else if (marks >= 80 && marks < 90) return 6;
+      else if (marks >= 70 && marks < 80) return 5;
+      else if (marks >= 60 && marks < 70) return 4;
+      else if (marks >= 50 && marks < 60) return 3;
+      else if (marks >= 40 && marks < 50) return 2;
+      else if (marks >= 30 && marks < 40) return 1;
+      else return 0; // Marks less than 30% get 0 points
+    }
+
+  </script>
 </body>
 </html>
