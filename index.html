@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Viewport Meta Tag Added -->
   <title>APS Calculator | Calculate Your APS Instantly</title>
   
   <!-- External Libraries -->
@@ -135,7 +136,89 @@
         font-size: 1rem;
         padding: 0.5rem;
       }
+
+      /* Ensure buttons are full-width on small screens */
+      .btn-lg {
+        width: 100%;
+        margin-bottom: 10px;
+      }
+
+      /* Adjust card padding on smaller screens */
+      .card {
+        padding: 1rem;
+      }
+
+      /* Ensure modal content is scrollable on small screens */
+      .modal-dialog {
+        max-width: 90%;
+        margin: 1.75rem auto;
+      }
     }
+
+    /* Coded By Section Styles */
+    .coded-by-info-container {
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    .coded-by-button button {
+      background-color: #6f42c1;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .coded-by-button button::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 300%;
+      height: 300%;
+      background: rgba(255, 255, 255, 0.15);
+      transition: all 0.75s ease;
+      border-radius: 50%;
+      transform: translate(-50%, -50%) scale(0);
+    }
+
+    .coded-by-button button:active::before {
+      transform: translate(-50%, -50%) scale(1);
+      transition: 0s;
+    }
+
+    .coded-by-button button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+
+    .coded-by-button button:focus {
+      outline: none;
+    }
+
+    .coded-by-button button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* Footer Styles */
+    footer {
+      text-align: center;
+      margin-top: 20px;
+      color: #6c757d;
+    }
+
+    /* Additional Styles to Ensure Proper Layout */
+    .container .card {
+      position: relative;
+    }
+
   </style>
 </head>
 
@@ -149,13 +232,12 @@
       </button>
     </div>
 
-    
     <div class="card p-4 shadow-lg" data-aos="fade-up">
-       <!-- Toggle Switch -->
-    <div class="checkbox-wrapper-25">
-      <label for="toggleRangeMarks" class="form-label" id="toggleLabel">Select by Range</label>
-      <input type="checkbox" id="toggleRangeMarks">
-    </div>
+      <!-- Toggle Switch -->
+      <div class="checkbox-wrapper-25">
+        <label for="toggleRangeMarks" class="form-label" id="toggleLabel">Select by Range</label>
+        <input type="checkbox" id="toggleRangeMarks">
+      </div>
       <form id="apsForm" novalidate>
         <!-- Subject Inputs Container -->
         <div id="subjectsContainer"></div>
@@ -180,9 +262,15 @@
             <i class="fas fa-redo"></i> Reset
           </button>
         </div>
+
+           <!-- Coded By and Footer Section (Placed outside the card to prevent duplication) -->
+    <div class="coded-by-info-container">
+      <div class="coded-by-button">
+        <button id="codedByButton">Developer: Malepe Brilliant</button>
+      </div>
       </form>
     </div>
-
+    
     <!-- Result Modal -->
     <div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
@@ -199,7 +287,7 @@
             <div id="averageDisplay" class="average-highlight my-3"></div>
             <div id="passLevelDisplay"></div>
             <div id="distinctionsDisplay"></div>
-            <button class="btn btn-primary mt-3" onclick="goToAPSChecker()">Go to APS Score Checker</button>
+            <button class="btn btn-primary mt-3" onclick="goToAPSChecker()">Check Availability</button>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -209,7 +297,7 @@
     </div>
 
     <!-- Info Modal -->
-    <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="false`">
+    <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="false">
       <div class="modal-dialog modal-dialog-left modal-lg">
         <div class="modal-content text-center animate__animated animate__zoomIn">
           <div class="modal-header">
@@ -236,12 +324,17 @@
     </div>
   </div>
 
+  <div> 
+    <footer>
+      <i class="fa fa-copyright"></i> <span id="copyrightYear"></span> Apply With Me
+    </footer>
+  </div>
   <!-- External Scripts -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   
   <script>
- // Initialize AOS 
+    // Initialize AOS 
     AOS.init();
 
     // Constants and Selectors
@@ -260,8 +353,12 @@
     const passLevelDisplay = document.getElementById("passLevelDisplay");
     const distinctionsDisplay = document.getElementById("distinctionsDisplay");
     const exploreFurtherLink = document.getElementById("exploreFurtherLink");
+    const codedByButton = document.getElementById("codedByButton"); // New Selector
 
     let subjectCount = 0;
+
+    // State Management: Store marks and ranges for each subject
+    const subjectState = {};
 
     // Subject Options
     const subjectOptions = [
@@ -414,7 +511,7 @@
     }
 
     // CREATE THE RANGE + MARKS SELECT
-    function createLevelSelect(isLO = false) {
+    function createLevelSelect(subjectId, isLO = false) {
       const wrapperDiv = document.createElement('div');
       wrapperDiv.className = 'select-container';
 
@@ -422,7 +519,7 @@
       const rangeSelect = document.createElement('select');
       rangeSelect.className = 'form-select level-select-range';
       rangeSelect.required = true;
-      if (isLO) rangeSelect.dataset.lo = "true";
+      rangeSelect.dataset.subjectId = subjectId; // Associate with subject
 
       const rangeOptions = [
         { value: "", text: "Select Range", disabled: true, selected: true },
@@ -455,7 +552,7 @@
       marksInput.min = 1;
       marksInput.max = 100;
       marksInput.required = true;
-      if (isLO) marksInput.dataset.lo = "true";
+      marksInput.dataset.subjectId = subjectId; // Associate with subject
 
       // Create the dynamic dropdown for marks (1-100)
       const marksDropdown = document.createElement('div');
@@ -500,6 +597,7 @@
     requiredSubjects.forEach(subject => {
       const row = document.createElement('div');
       row.className = 'row mb-3';
+      row.dataset.subjectId = subject.id; // Assign unique identifier
 
       // Subject select column
       const subjectCol = document.createElement('div');
@@ -533,7 +631,7 @@
       valueLabel.className = 'form-label';
       valueLabel.textContent = 'Select Range / Enter Marks';
 
-      const levelSelect = createLevelSelect(subject.id === "lifeOrientation");
+      const levelSelect = createLevelSelect(subject.id, subject.id === "lifeOrientation");
 
       valueCol.appendChild(valueLabel);
       valueCol.appendChild(levelSelect);
@@ -544,93 +642,104 @@
 
       // Append row to container
       subjectsContainer.appendChild(row);
+
+      // Initialize state for the subject
+      subjectState[subject.id] = {
+        range: "",
+        marks: ""
+      };
     });
 
-   // ADD OPTIONAL SUBJECT FUNCTIONALITY
-addSubjectBtn.addEventListener("click", () => {
-  if (subjectCount >= 1) {
-    alert("Only 1 optional subject is allowed.");
-    return;
-  }
+    // ADD OPTIONAL SUBJECT FUNCTIONALITY
+    addSubjectBtn.addEventListener("click", () => {
+      if (subjectCount >= 1) {
+        alert("Only 1 optional subject is allowed.");
+        return;
+      }
 
-  subjectCount++;
-  const row = document.createElement('div');
-  row.className = 'row mb-3';
-  row.id = `optionalSubject${subjectCount}`;
+      subjectCount++;
+      const subjectId = `optionalSubject${subjectCount}`;
 
-  // Optional Subject select column
-  const subjectCol = document.createElement('div');
-  subjectCol.className = 'col-12 col-md-6';
+      const row = document.createElement('div');
+      row.className = 'row mb-3';
+      row.id = subjectId;
+      row.dataset.subjectId = subjectId; // Assign unique identifier
 
-  const label = document.createElement('label');
-  label.className = 'form-label';
-  label.textContent = "Optional Subject";
+      // Optional Subject select column
+      const subjectCol = document.createElement('div');
+      subjectCol.className = 'col-12 col-md-6';
 
-  const select = document.createElement('select');
-  select.className = 'form-select subject-select optional-subject';
-  select.required = true;
-  select.innerHTML = generateOptions(subjectOptions);
+      const label = document.createElement('label');
+      label.className = 'form-label';
+      label.textContent = "Optional Subject";
 
-  const errorDiv = document.createElement('div');
-  errorDiv.id = `optionalSubject${subjectCount}-error`;
-  errorDiv.className = 'error-message';
+      const select = document.createElement('select');
+      select.className = 'form-select subject-select optional-subject';
+      select.required = true;
+      select.innerHTML = generateOptions(subjectOptions);
 
-  subjectCol.appendChild(label);
-  subjectCol.appendChild(select);
-  subjectCol.appendChild(errorDiv);
+      const errorDiv = document.createElement('div');
+      errorDiv.id = `${subjectId}-error`;
+      errorDiv.className = 'error-message';
 
-  // Value select column
-  const valueCol = document.createElement('div');
-  valueCol.className = 'col-12 col-md-6';
+      subjectCol.appendChild(label);
+      subjectCol.appendChild(select);
+      subjectCol.appendChild(errorDiv);
 
-  const valueLabel = document.createElement('label');
-  valueLabel.className = 'form-label';
-  valueLabel.textContent = 'Select Range / Enter Marks';
+      // Value select column
+      const valueCol = document.createElement('div');
+      valueCol.className = 'col-12 col-md-6';
 
-  const levelSelect = createLevelSelect();
+      const valueLabel = document.createElement('label');
+      valueLabel.className = 'form-label';
+      valueLabel.textContent = 'Select Range / Enter Marks';
 
-  valueCol.appendChild(valueLabel);
-  valueCol.appendChild(levelSelect);
+      const levelSelect = createLevelSelect(subjectId);
 
-  // Append to row
-  row.appendChild(subjectCol);
-  row.appendChild(valueCol);
+      valueCol.appendChild(valueLabel);
+      valueCol.appendChild(levelSelect);
 
-  // Append row to optional subjects container
-  optionalSubjects.appendChild(row);
+      // Append to row
+      row.appendChild(subjectCol);
+      row.appendChild(valueCol);
 
-  // Show delete button and hide add button
-  deleteSubjectBtn.classList.remove('d-none');
-  addSubjectBtn.classList.add('d-none');  // Hide "Add" button
+      // Append row to optional subjects container
+      optionalSubjects.appendChild(row);
 
-  // Auto-fill if in Marks mode
-  if (toggleRangeMarks.checked) {
-    const marksInput = row.querySelector('.level-select-marks');
-    marksInput.value = "";
-  }
+      // Show delete button and hide add button
+      deleteSubjectBtn.classList.remove('d-none');
+      addSubjectBtn.classList.add('d-none');  // Hide "Add" button
 
-  updateSubjectOptions();
-});
+      // Initialize state for the optional subject
+      subjectState[subjectId] = {
+        range: "",
+        marks: ""
+      };
 
-// DELETE OPTIONAL SUBJECT FUNCTIONALITY
-deleteSubjectBtn.addEventListener('click', () => {
-  if (subjectCount <= 0) return;
+      updateSubjectOptions();
+    });
 
-  const row = document.getElementById(`optionalSubject${subjectCount}`);
-  if (row) {
-    optionalSubjects.removeChild(row);
-    subjectCount--;
-  }
+    // DELETE OPTIONAL SUBJECT FUNCTIONALITY
+    deleteSubjectBtn.addEventListener('click', () => {
+      if (subjectCount <= 0) return;
 
-  if (subjectCount === 0) {
-    deleteSubjectBtn.classList.add('d-none');
-    addSubjectBtn.classList.remove('d-none');  // Show "Add" button again
-  }
+      const subjectId = `optionalSubject${subjectCount}`;
+      const row = document.getElementById(subjectId);
+      if (row) {
+        optionalSubjects.removeChild(row);
+        delete subjectState[subjectId]; // Remove from state
+        subjectCount--;
+      }
 
-  updateSubjectOptions();
-});
+      if (subjectCount === 0) {
+        deleteSubjectBtn.classList.add('d-none');
+        addSubjectBtn.classList.remove('d-none');  // Show "Add" button again
+      }
 
-    // TOGGLE SWITCH: Range vs. Marks with Auto-fill
+      updateSubjectOptions();
+    });
+
+    // TOGGLE SWITCH: Range vs. Marks with Auto-fill and State Preservation
     toggleRangeMarks.addEventListener('change', () => {
       const isMarksMode = toggleRangeMarks.checked;
       toggleLabel.textContent = isMarksMode ? "Select by Marks" : "Select by Range";
@@ -640,22 +749,31 @@ deleteSubjectBtn.addEventListener('click', () => {
       allSelectContainers.forEach(container => {
         const rangeSelect = container.querySelector('.level-select-range');
         const marksWrapper = container.querySelector('.marks-input-wrapper');
+        const subjectId = rangeSelect.dataset.subjectId;
+        const currentState = subjectState[subjectId];
 
         if (isMarksMode) {
-          // Auto-fill marks based on selected range
-          const selectedAPS = parseInt(rangeSelect.value);
-          if (!isNaN(selectedAPS)) {
-            marksWrapper.querySelector('.level-select-marks').value = rangeToMedianMarks(selectedAPS);
+          // Switch to Marks Mode
+          // If marks are already entered, use them; else, set to median based on range
+          if (currentState.marks) {
+            container.querySelector('.level-select-marks').value = currentState.marks;
+          } else if (currentState.range) {
+            const medianMarks = rangeToMedianMarks(parseInt(currentState.range));
+            container.querySelector('.level-select-marks').value = medianMarks;
+            currentState.marks = medianMarks;
           }
           rangeSelect.classList.add('d-none');
           rangeSelect.removeAttribute('required');
           marksWrapper.classList.remove('d-none');
           marksWrapper.querySelector('.level-select-marks').setAttribute('required', true);
         } else {
-          // Auto-fill range based on entered marks
-          const enteredMarks = parseInt(marksWrapper.querySelector('.level-select-marks').value);
+          // Switch to Range Mode
+          // Calculate range based on entered marks
+          const enteredMarks = parseInt(container.querySelector('.level-select-marks').value);
           if (!isNaN(enteredMarks)) {
-            rangeSelect.value = marksToAPS(enteredMarks).toString();
+            const calculatedAPS = marksToAPS(enteredMarks);
+            rangeSelect.value = calculatedAPS.toString();
+            currentState.range = calculatedAPS.toString();
           }
           marksWrapper.classList.add('d-none');
           marksWrapper.querySelector('.level-select-marks').removeAttribute('required');
@@ -670,9 +788,24 @@ deleteSubjectBtn.addEventListener('click', () => {
       // Handle dropdown item selection
       if (e.target.classList.contains('marks-dropdown-item')) {
         const marksInput = e.target.closest('.marks-input-wrapper').querySelector('.level-select-marks');
-        marksInput.value = e.target.getAttribute('data-value');
         const dropdown = e.target.closest('.marks-dropdown');
+        const subjectId = marksInput.dataset.subjectId;
+        const selectedValue = e.target.getAttribute('data-value');
+
+        marksInput.value = selectedValue;
         dropdown.classList.remove('show');
+
+        // Update state
+        subjectState[subjectId].marks = selectedValue;
+
+        // If in Range mode, update the range based on the new marks
+        if (!toggleRangeMarks.checked) {
+          const calculatedAPS = marksToAPS(parseInt(selectedValue));
+          const rangeSelect = marksInput.closest('.select-container').querySelector('.level-select-range');
+          rangeSelect.value = calculatedAPS.toString();
+          subjectState[subjectId].range = calculatedAPS.toString();
+        }
+
         validateField(marksInput);
       } else {
         // Toggle dropdown on input focus
@@ -698,15 +831,26 @@ deleteSubjectBtn.addEventListener('click', () => {
       }
     });
 
-    // Enforce max 100 on marks input
+    // Enforce max 100 on marks input and update state
     document.addEventListener('input', (e) => {
       if (e.target.classList.contains('level-select-marks')) {
         let value = parseInt(e.target.value);
+        const subjectId = e.target.dataset.subjectId;
         if (isNaN(value)) {
           e.target.value = "";
+          subjectState[subjectId].marks = "";
         } else {
           value = Math.max(1, Math.min(100, value));
           e.target.value = value;
+          subjectState[subjectId].marks = value.toString();
+
+          // If in Range mode, update the range based on the new marks
+          if (!toggleRangeMarks.checked) {
+            const calculatedAPS = marksToAPS(value);
+            const rangeSelect = e.target.closest('.select-container').querySelector('.level-select-range');
+            rangeSelect.value = calculatedAPS.toString();
+            subjectState[subjectId].range = calculatedAPS.toString();
+          }
         }
         validateField(e.target);
       }
@@ -732,17 +876,22 @@ deleteSubjectBtn.addEventListener('click', () => {
     }
 
     function validateField(field) {
+      const subjectId = field.dataset.subjectId;
       if (field.classList.contains('subject-select')) {
         if (!field.value) {
           showError(field, "Please select a subject.");
         } else {
           hideError(field);
+          // Update state if subject is selected
+          subjectState[subjectId].subject = field.value;
         }
       } else if (field.classList.contains('level-select-range')) {
         if (!field.value) {
           showError(field, "Please select a range.");
         } else {
           hideError(field);
+          // Update state
+          subjectState[subjectId].range = field.value;
         }
       } else if (field.classList.contains('level-select-marks')) {
         if (field.value === "") {
@@ -779,6 +928,7 @@ deleteSubjectBtn.addEventListener('click', () => {
       subjectRows.forEach(row => {
         const subjectSelect = row.querySelector(".subject-select");
         const valueElement = isMarksMode ? row.querySelector(".level-select-marks") : row.querySelector(".level-select-range");
+        const subjectId = row.dataset.subjectId;
 
         // Validate subject selection
         if (!subjectSelect.value) {
@@ -812,18 +962,6 @@ deleteSubjectBtn.addEventListener('click', () => {
       return isValid;
     }
 
-    // GET CURRENT APS FROM RANGE SELECT
-    function getCurrentAPSFromRangeSelect() {
-      const rangeSelects = document.querySelectorAll('.level-select-range');
-      let currentAPS = null;
-      rangeSelects.forEach(select => {
-        if (!select.classList.contains('d-none') && select.value) {
-          currentAPS = parseInt(select.value);
-        }
-      });
-      return currentAPS;
-    }
-
     // CALCULATE APS FUNCTION
     function calculateAPS() {
       if (!validateFields()) {
@@ -842,15 +980,21 @@ deleteSubjectBtn.addEventListener('click', () => {
       subjectRows.forEach(row => {
         const subjectSelect = row.querySelector(".subject-select");
         const valueElement = isMarksMode ? row.querySelector(".level-select-marks") : row.querySelector(".level-select-range");
+        const subjectId = row.dataset.subjectId;
+        const currentState = subjectState[subjectId];
+
         let points = 0;
         let marks = 0;
 
         if (isMarksMode) {
           marks = parseInt(valueElement.value);
           points = marksToAPS(marks);
+          currentState.marks = marks.toString(); // Update state
         } else {
           points = parseInt(valueElement.value);
           marks = rangeToMedianMarks(points);
+          currentState.range = points.toString(); // Update state
+          currentState.marks = marks.toString(); // Update marks based on range
         }
 
         if (subjectSelect.id === "lifeOrientation") {
@@ -917,72 +1061,91 @@ deleteSubjectBtn.addEventListener('click', () => {
         return;
       }
 
-    // Redirect to APS Score Checker with the score as a query parameter
-    window.location.href = `https://play0ground.github.io/APS-SCORE-CHECHER/?score=${score}`;
-  }
+      // Redirect to APS Score Checker with the score as a query parameter
+      window.location.href = `https://www.youtube.com/watch?v=xvFZjo5PgG0`;
+    }
 
     // EVENT LISTENERS
     document.getElementById('calculateAPS').addEventListener('click', calculateAPS);
 
-   // RESET FORM FUNCTIONALITY
-  resetFormBtn.addEventListener('click', () => {
-    // Manually reset all select fields to their first option (placeholder)
-    const allSelects = form.querySelectorAll('select');
-    allSelects.forEach(select => {
-      // Skip disabled selects like Life Orientation
-      if (!select.disabled) {
-        select.selectedIndex = 0;
-        select.classList.remove('input-error');
-      }
+    // RESET FORM FUNCTIONALITY
+    resetFormBtn.addEventListener('click', () => {
+      // Manually reset all select fields to their first option (placeholder)
+      const allSelects = form.querySelectorAll('select');
+      allSelects.forEach(select => {
+        // Skip disabled selects like Life Orientation
+        if (!select.disabled) {
+          select.selectedIndex = 0;
+          select.classList.remove('input-error');
+          const subjectId = select.closest('.row').dataset.subjectId;
+          subjectState[subjectId].range = "";
+          subjectState[subjectId].marks = "";
+          if (select.id === "lifeOrientation") {
+            select.value = "Life Orientation"; // Reset Life Orientation
+            subjectState[subjectId].range = "";
+            subjectState[subjectId].marks = "";
+          }
+        }
+      });
+      
+      // Clear all marks inputs
+      const allMarksInputs = form.querySelectorAll('.level-select-marks');
+      allMarksInputs.forEach(input => {
+        input.value = '';
+        input.classList.remove('input-error');
+        const subjectId = input.dataset.subjectId;
+        subjectState[subjectId].marks = "";
+      });
+      
+      // Hide all marks input wrappers
+      const allMarksWrappers = form.querySelectorAll('.marks-input-wrapper');
+      allMarksWrappers.forEach(wrapper => {
+        wrapper.classList.add('d-none');
+      });
+      
+      // Reset the toggle switch to "Select by Range"
+      toggleRangeMarks.checked = false;
+      toggleLabel.textContent = "Select by Range";
+      
+      // Show all range selects and hide marks inputs
+      const allRangeSelects = form.querySelectorAll('.level-select-range');
+      allRangeSelects.forEach(select => {
+        select.classList.remove('d-none');
+        select.required = true;
+        const subjectId = select.dataset.subjectId;
+        subjectState[subjectId].range = "";
+      });
+      
+      // Ensure marks input wrappers are hidden
+      allMarksWrappers.forEach(wrapper => {
+        wrapper.classList.add('d-none');
+      });
+      
+      // Remove all optional subjects
+      optionalSubjects.innerHTML = '';
+      subjectCount = 0;
+      
+      // Hide delete subject button
+      deleteSubjectBtn.classList.add('d-none');
+      
+      // Clear result displays
+      averageDisplay.innerHTML = '';
+      passLevelDisplay.innerHTML = '';
+      distinctionsDisplay.innerHTML = '';
+      
+      // Clear all error messages and highlights
+      clearAllErrors();
+      
+      // Reset state for required subjects
+      requiredSubjects.forEach(subject => {
+        const subjectId = subject.id;
+        subjectState[subjectId].range = "";
+        subjectState[subjectId].marks = "";
+      });
+
+      // Update subject options to re-enable all options
+      updateSubjectOptions();
     });
-    
-    // Clear all marks inputs
-    const allMarksInputs = form.querySelectorAll('.level-select-marks');
-    allMarksInputs.forEach(input => {
-      input.value = '';
-      input.classList.remove('input-error');
-    });
-    
-    // Hide all marks input wrappers
-    const allMarksWrappers = form.querySelectorAll('.marks-input-wrapper');
-    allMarksWrappers.forEach(wrapper => {
-      wrapper.classList.add('d-none');
-    });
-    
-    // Reset the toggle switch to "Select by Range"
-    toggleRangeMarks.checked = false;
-    toggleLabel.textContent = "Select by Range";
-    
-    // Show all range selects and hide marks inputs
-    const allRangeSelects = form.querySelectorAll('.level-select-range');
-    allRangeSelects.forEach(select => {
-      select.classList.remove('d-none');
-      select.required = true;
-    });
-    
-    // Ensure marks input wrappers are hidden
-    allMarksWrappers.forEach(wrapper => {
-      wrapper.classList.add('d-none');
-    });
-    
-    // Remove all optional subjects
-    optionalSubjects.innerHTML = '';
-    subjectCount = 0;
-    
-    // Hide delete subject button
-    deleteSubjectBtn.classList.add('d-none');
-    
-    // Clear result displays
-    averageDisplay.innerHTML = '';
-    passLevelDisplay.innerHTML = '';
-    distinctionsDisplay.innerHTML = '';
-    
-    // Clear all error messages and highlights
-    clearAllErrors();
-    
-    // Update subject options to re-enable all options
-    updateSubjectOptions();
-  });
 
     // PREVENT FORM SUBMISSION VIA ENTER KEY
     form.addEventListener('keydown', (e) => {
@@ -1037,22 +1200,22 @@ deleteSubjectBtn.addEventListener('click', () => {
       });
     });
 
-   // EXPLORE FURTHER LINK FUNCTIONALITY
-   exploreFurtherLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    // Check if APS score is calculated
-    const finalScore = apsWithoutLO.textContent.trim();
-    const score = parseInt(finalScore);
+    // EXPLORE FURTHER LINK FUNCTIONALITY
+    exploreFurtherLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      // Check if APS score is calculated
+      const finalScore = apsWithoutLO.textContent.trim();
+      const score = parseInt(finalScore);
 
-    if (!isNaN(score) && score > 0) {
-      window.location.href = `https://play0ground.github.io/APS-SCORE-CHECHER/`;
-    } else {
-      // If APS score is not calculated, redirect without score
-      window.location.href = `https://play0ground.github.io/APS-SCORE-CHECHER/`;
-    }
-  });
+      if (!isNaN(score) && score > 0) {
+        window.location.href = `https://play0ground.github.io/APS-SCORE-CHECHER/?score=${score}`;
+      } else {
+        // If APS score is not calculated, redirect without score
+        window.location.href = `https://play0ground.github.io/APS-SCORE-CHECHER/`;
+      }
+    });
 
-    // Function to map marks to APS points
+    // Function to map marks to APS points (unused, can be removed)
     function calculatePointsFromMarks(marks) {
       if (marks >= 90 && marks <= 100) return 7;
       else if (marks >= 80 && marks < 90) return 6;
@@ -1064,6 +1227,24 @@ deleteSubjectBtn.addEventListener('click', () => {
       else return 0; // Marks less than 30% get 0 points
     }
 
+    // JavaScript to set the current year in the footer
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('copyrightYear').textContent = new Date().getFullYear();
+    });
+
+    // Coded By Button Functionality
+    codedByButton.addEventListener('click', () => {
+      // Add animation class
+      codedByButton.classList.add('animate__animated', 'animate__tada');
+
+      // After animation ends, redirect to Instagram
+      codedByButton.addEventListener('animationend', () => {
+        // Remove animation classes
+        codedByButton.classList.remove('animate__animated', 'animate__tada');
+        // Redirect to Instagram
+        window.location.href = "https://www.instagram.com/malepe_brilliant/";
+      }, { once: true }); // Ensure the event listener is removed after one trigger
+    });
   </script>
 </body>
 </html>
